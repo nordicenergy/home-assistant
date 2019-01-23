@@ -12,18 +12,20 @@ let registeredDialog = false;
 const dialogShowEvent = "show-edit-lovelace";
 const dialogTag = "hui-dialog-edit-lovelace";
 
-const registerEditLovelaceDialog = (element: HTMLElement) =>
+const registerEditLovelaceDialog = (element: HTMLElement): Event =>
   fireEvent(element, "register-dialog", {
     dialogShowEvent,
     dialogTag,
     dialogImport: () =>
-      import(/* webpackChunkName: "hui-dialog-edit-lovelace" */ "./hui-dialog-edit-lovelace"),
+      import(
+        /* webpackChunkName: "hui-dialog-edit-lovelace" */ "./hui-dialog-edit-lovelace"
+      ),
   });
 
 export const showEditLovelaceDialog = (
   element: HTMLElement,
   lovelace: Lovelace
-) => {
+): void => {
   if (!registeredDialog) {
     registeredDialog = true;
     registerEditLovelaceDialog(element);

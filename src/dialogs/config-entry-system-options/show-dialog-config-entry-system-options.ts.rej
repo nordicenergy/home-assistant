@@ -1,0 +1,6 @@
+diff a/src/dialogs/config-entry-system-options/show-dialog-config-entry-system-options.ts b/src/dialogs/config-entry-system-options/show-dialog-config-entry-system-options.ts	(rejected hunks)
+@@ -13 +13,3 @@ export const loadConfigEntrySystemOptionsDialog = () =>
+-  import(/* webpackChunkName: "config-entry-system-options" */ "./dialog-config-entry-system-options");
++  import(
++    /* webpackChunkName: "config-entry-system-options" */ "./dialog-config-entry-system-options"
++  );

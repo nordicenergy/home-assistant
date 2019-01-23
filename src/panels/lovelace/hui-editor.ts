@@ -5,18 +5,20 @@ import yaml from "js-yaml";
 import "@polymer/app-layout/app-header-layout/app-header-layout";
 import "@polymer/app-layout/app-header/app-header";
 import "@polymer/app-layout/app-toolbar/app-toolbar";
-import "@polymer/paper-button/paper-button";
+import "@material/mwc-button";
 import "@polymer/paper-icon-button/paper-icon-button";
 import "@polymer/paper-spinner/paper-spinner";
 
 import { struct } from "./common/structs/struct";
 import { Lovelace } from "./types";
-import { hassLocalizeLitMixin } from "../../mixins/lit-localize-mixin";
 
 import "../../components/ha-icon";
-import { haStyle } from "../../resources/ha-style";
-
-const TAB_INSERT = "  ";
+import { haStyle } from "../../resources/styles";
+import "./components/hui-yaml-editor";
+// This is not a duplicate import, one is for types, one is for element.
+// tslint:disable-next-line
+import { HuiYamlEditor } from "./components/hui-yaml-editor";
+import { HomeAssistant } from "../../types";
 
 const lovelaceStruct = struct.interface({
   title: "string?",
@@ -24,21 +26,21 @@ const lovelaceStruct = struct.interface({
   resources: struct.optional(["object"]),
 });
 
-class LovelaceFullConfigEditor extends hassLocalizeLitMixin(LitElement) {
+class LovelaceFullConfigEditor extends LitElement {
+  public hass?: HomeAssistant;
   public lovelace?: Lovelace;
   public closeEditor?: () => void;
   private _saving?: boolean;
   private _changed?: boolean;
-  private _hashAdded?: boolean;
-  private _hash?: boolean;
+  private _generation?: number;
 
   static get properties() {
     return {
+      hass: {},
       lovelace: {},
+      closeEditor: {},
       _saving: {},
       _changed: {},
-      _hashAdded: {},
-      _hash: {},
     };
   }
 
@@ -51,79 +53,62 @@ class LovelaceFullConfigEditor extends hassLocalizeLitMixin(LitElement) {
               icon="hass:close"
               @click="${this._closeEditor}"
             ></paper-icon-button>
-            <div main-title>Edit Config</div>
-            ${
-              this._hash
-                ? html`
-                    <span class="comments">Comments will be not be saved!</span>
-                  `
-                : ""
-            }
-            <paper-button @click="${this._handleSave}">Save</paper-button>
-            <ha-icon
+            <div main-title>
+              ${this.hass!.localize(
+                "ui.panel.lovelace.editor.raw_editor.header"
+              )}
+            </div>
+            <div
               class="save-button
-            ${
-                classMap({
-                  saved: this._saving! === false || this._changed === true,
-                })
-              }"
-              icon="${this._changed ? "hass:circle-medium" : "hass:check"}"
-            ></ha-icon>
+              ${classMap({
+                saved: this._saving! === false || this._changed === true,
+              })}"
+            >
+              ${this._changed
+                ? this.hass!.localize(
+                    "ui.panel.lovelace.editor.raw_editor.unsaved_changes"
+                  )
+                : this.hass!.localize(
+                    "ui.panel.lovelace.editor.raw_editor.saved"
+                  )}
+            </div>
+            <mwc-button raised @click="${this._handleSave}"
+              >${this.hass!.localize(
+                "ui.panel.lovelace.editor.raw_editor.save"
+              )}</mwc-button
+            >
           </app-toolbar>
         </app-header>
         <div class="content">
-          <textarea
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-            @input="${this._yamlChanged}"
-          ></textarea>
+          <hui-yaml-editor
+            .hass="${this.hass}"
+            @yaml-changed="${this._yamlChanged}"
+            @yaml-save="${this._handleSave}"
+          >
+          </hui-yaml-editor>
         </div>
       </app-header-layout>
     `;
   }
 
   protected firstUpdated() {
-    const textArea = this.textArea;
-    textArea.value = yaml.safeDump(this.lovelace!.config);
-    textArea.addEventListener("keydown", (e) => {
-      if (e.keyCode === 51) {
-        this._hashAdded = true;
-        return;
-      }
-
-      if (e.keyCode !== 9) {
-        return;
-      }
-
-      e.preventDefault();
-
-      // tab was pressed, get caret position/selection
-      const val = textArea.value;
-      const start = textArea.selectionStart;
-      const end = textArea.selectionEnd;
-
-      // set textarea value to: text before caret + tab + text after caret
-      textArea.value =
-        val.substring(0, start) + TAB_INSERT + val.substring(end);
-
-      // put caret at right position again
-      textArea.selectionStart = textArea.selectionEnd =
-        start + TAB_INSERT.length;
-    });
+    this.yamlEditor.value = yaml.safeDump(this.lovelace!.config);
+    this.yamlEditor.codemirror.clearHistory();
+    this._generation = this.yamlEditor.codemirror.changeGeneration(true);
   }
 
   static get styles(): CSSResult[] {
     return [
       haStyle,
       css`
+        :host {
+          --code-mirror-height: 100%;
+        }
+
         app-header-layout {
           height: 100vh;
         }
-        paper-button {
-          font-size: 16px;
-        }
+
         app-toolbar {
           background-color: var(--dark-background-color, #455a64);
           color: var(--dark-text-color);
@@ -137,23 +122,14 @@ class LovelaceFullConfigEditor extends hassLocalizeLitMixin(LitElement) {
           height: calc(100vh - 68px);
         }
 
-        textarea {
-          box-sizing: border-box;
+        hui-code-editor {
           height: 100%;
-          width: 100%;
-          resize: none;
-          border: 0;
-          outline: 0;
-          font-size: 12pt;
-          font-family: "Courier New", Courier, monospace;
-          padding: 8px;
         }
 
         .save-button {
           opacity: 0;
-          margin-left: -16px;
-          margin-top: -4px;
-          transition: opacity 1.5s;
+          font-size: 14px;
+          padding: 0px 10px;
         }
 
         .saved {
@@ -163,25 +139,41 @@ class LovelaceFullConfigEditor extends hassLocalizeLitMixin(LitElement) {
     ];
   }
 
+  private _yamlChanged() {
+    if (!this._generation) {
+      return;
+    }
+    this._changed = !this.yamlEditor.codemirror.isClean(this._generation);
+    if (this._changed && !window.onbeforeunload) {
+      window.onbeforeunload = () => {
+        return true;
+      };
+    } else if (!this._changed && window.onbeforeunload) {
+      window.onbeforeunload = null;
+    }
+  }
+
   private _closeEditor() {
     if (this._changed) {
       if (
-        !confirm("You have unsafed changes, are you sure you want to exit?")
+        !confirm("You have unsaved changes, are you sure you want to exit?")
       ) {
         return;
       }
     }
     window.onbeforeunload = null;
-    this.closeEditor!();
+    if (this.closeEditor) {
+      this.closeEditor();
+    }
   }
 
   private async _handleSave() {
     this._saving = true;
 
-    if (this._hashAdded) {
+    if (this.yamlEditor.hasComments) {
       if (
         !confirm(
-          "Your config might contain comments, these will not be saved. Do you want to continue?"
+          "Your config contains comment(s), these will not be saved. Do you want to continue?"
         )
       ) {
         return;
@@ -190,7 +182,7 @@ class LovelaceFullConfigEditor extends hassLocalizeLitMixin(LitElement) {
 
     let value;
     try {
-      value = yaml.safeLoad(this.textArea.value);
+      value = yaml.safeLoad(this.yamlEditor.value);
     } catch (err) {
       alert(`Unable to parse YAML: ${err}`);
       this._saving = false;
@@ -207,25 +199,14 @@ class LovelaceFullConfigEditor extends hassLocalizeLitMixin(LitElement) {
     } catch (err) {
       alert(`Unable to save YAML: ${err}`);
     }
+    this._generation = this.yamlEditor.codemirror.changeGeneration(true);
     window.onbeforeunload = null;
     this._saving = false;
     this._changed = false;
-    this._hashAdded = false;
   }
 
-  private _yamlChanged() {
-    this._hash = this._hashAdded || this.textArea.value.includes("#");
-    if (this._changed) {
-      return;
-    }
-    window.onbeforeunload = () => {
-      return true;
-    };
-    this._changed = true;
-  }
-
-  private get textArea(): HTMLTextAreaElement {
-    return this.shadowRoot!.querySelector("textarea")!;
+  private get yamlEditor(): HuiYamlEditor {
+    return this.shadowRoot!.querySelector("hui-yaml-editor")!;
   }
 }
 

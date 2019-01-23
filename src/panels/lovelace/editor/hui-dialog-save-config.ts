@@ -2,39 +2,30 @@ import {
   html,
   css,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
   CSSResult,
+  customElement,
+  property,
 } from "lit-element";
-
 import "@polymer/paper-spinner/paper-spinner";
-import "@polymer/paper-dialog/paper-dialog";
-// This is not a duplicate import, one is for types, one is for element.
-// tslint:disable-next-line
-import { PaperDialogElement } from "@polymer/paper-dialog/paper-dialog";
-import "@polymer/paper-button/paper-button";
+import "../../../components/dialog/ha-paper-dialog";
+// tslint:disable-next-line:no-duplicate-imports
+import { HaPaperDialog } from "../../../components/dialog/ha-paper-dialog";
+import "@material/mwc-button";
 
-import { haStyleDialog } from "../../../resources/ha-style";
-
+import { haStyleDialog } from "../../../resources/styles";
 import { HomeAssistant } from "../../../types";
-
-import { hassLocalizeLitMixin } from "../../../mixins/lit-localize-mixin";
 import { SaveDialogParams } from "./show-save-config-dialog";
 
-export class HuiSaveConfig extends hassLocalizeLitMixin(LitElement) {
-  public hass?: HomeAssistant;
-  private _params?: SaveDialogParams;
-  private _saving: boolean;
+@customElement("hui-dialog-save-config")
+export class HuiSaveConfig extends LitElement {
+  @property() public hass?: HomeAssistant;
 
-  static get properties(): PropertyDeclarations {
-    return {
-      hass: {},
-      _params: {},
-      _saving: {},
-    };
-  }
+  @property() private _params?: SaveDialogParams;
 
-  protected constructor() {
+  @property() private _saving: boolean;
+
+  public constructor() {
     super();
     this._saving = false;
   }
@@ -45,40 +36,43 @@ export class HuiSaveConfig extends hassLocalizeLitMixin(LitElement) {
     this._dialog.open();
   }
 
-  private get _dialog(): PaperDialogElement {
-    return this.shadowRoot!.querySelector("paper-dialog")!;
+  private get _dialog(): HaPaperDialog {
+    return this.shadowRoot!.querySelector("ha-paper-dialog")!;
   }
 
   protected render(): TemplateResult | void {
     return html`
-      <paper-dialog with-backdrop>
-        <h2>${this.localize("ui.panel.lovelace.editor.save_config.header")}</h2>
+      <ha-paper-dialog with-backdrop>
+        <h2>
+          ${this.hass!.localize("ui.panel.lovelace.editor.save_config.header")}
+        </h2>
         <paper-dialog-scrollable>
-          <p>${this.localize("ui.panel.lovelace.editor.save_config.para")}</p>
           <p>
-            ${this.localize("ui.panel.lovelace.editor.save_config.para_sure")}
+            ${this.hass!.localize("ui.panel.lovelace.editor.save_config.para")}
+          </p>
+          <p>
+            ${this.hass!.localize(
+              "ui.panel.lovelace.editor.save_config.para_sure"
+            )}
           </p>
         </paper-dialog-scrollable>
         <div class="paper-dialog-buttons">
-          <paper-button @click="${this._closeDialog}"
-            >${
-              this.localize("ui.panel.lovelace.editor.save_config.cancel")
-            }</paper-button
+          <mwc-button @click="${this._closeDialog}"
+            >${this.hass!.localize(
+              "ui.panel.lovelace.editor.save_config.cancel"
+            )}</mwc-button
           >
-          <paper-button
-            ?disabled="${this._saving}"
-            @click="${this._saveConfig}"
-          >
+          <mwc-button ?disabled="${this._saving}" @click="${this._saveConfig}">
             <paper-spinner
               ?active="${this._saving}"
               alt="Saving"
             ></paper-spinner>
-            ${
-              this.localize("ui.panel.lovelace.editor.save_config.save")
-            }</paper-button
+            ${this.hass!.localize(
+              "ui.panel.lovelace.editor.save_config.save"
+            )}</mwc-button
           >
         </div>
-      </paper-dialog>
+      </ha-paper-dialog>
     `;
   }
 
@@ -109,17 +103,17 @@ export class HuiSaveConfig extends hassLocalizeLitMixin(LitElement) {
       css`
         @media all and (max-width: 450px), all and (max-height: 500px) {
           /* overrule the ha-style-dialog max-height on small screens */
-          paper-dialog {
+          ha-paper-dialog {
             max-height: 100%;
             height: 100%;
           }
         }
         @media all and (min-width: 660px) {
-          paper-dialog {
+          ha-paper-dialog {
             width: 650px;
           }
         }
-        paper-dialog {
+        ha-paper-dialog {
           max-width: 650px;
         }
         paper-spinner {
@@ -128,7 +122,7 @@ export class HuiSaveConfig extends hassLocalizeLitMixin(LitElement) {
         paper-spinner[active] {
           display: block;
         }
-        paper-button paper-spinner {
+        mwc-button paper-spinner {
           width: 14px;
           height: 14px;
           margin-right: 20px;
@@ -143,5 +137,3 @@ declare global {
     "hui-dialog-save-config": HuiSaveConfig;
   }
 }
-
-customElements.define("hui-dialog-save-config", HuiSaveConfig);

@@ -1,28 +1,35 @@
-import "@polymer/iron-flex-layout/iron-flex-layout-classes";
+import "../../../components/buttons/ha-call-service-button";
+import "../../../components/ha-service-description";
+import "../../../components/ha-card";
+import "../ha-config-section";
+import "@material/mwc-button";
+import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
+import "@polymer/paper-icon-button/paper-icon-button";
+import "@polymer/paper-input/paper-input";
+import "@polymer/paper-item/paper-item";
+import "@polymer/paper-listbox/paper-listbox";
+
 import {
+  css,
+  CSSResult,
   html,
   LitElement,
   PropertyDeclarations,
   PropertyValues,
   TemplateResult,
 } from "lit-element";
-import "@polymer/paper-button/paper-button";
-import "@polymer/paper-card/paper-card";
-import "@polymer/paper-icon-button/paper-icon-button";
-import { HassEntity } from "home-assistant-js-websocket";
-import "../../../components/buttons/ha-call-service-button";
-import "../../../components/ha-service-description";
+
 import {
   Attribute,
   Cluster,
   fetchAttributesForCluster,
   ReadAttributeServiceData,
   readAttributeValue,
-  ZHADeviceEntity,
+  ZHADevice,
 } from "../../../data/zha";
-import "../../../resources/ha-style";
+import { haStyle } from "../../../resources/styles";
 import { HomeAssistant } from "../../../types";
-import "../ha-config-section";
+import { formatAsPaddedHex } from "./functions";
 import {
   ChangeEvent,
   ItemSelectedEvent,
@@ -33,11 +40,8 @@ export class ZHAClusterAttributes extends LitElement {
   public hass?: HomeAssistant;
   public isWide?: boolean;
   public showHelp: boolean;
-  public selectedNode?: HassEntity;
-  public selectedEntity?: ZHADeviceEntity;
+  public selectedNode?: ZHADevice;
   public selectedCluster?: Cluster;
-  private _haStyle?: DocumentFragment;
-  private _ironFlex?: DocumentFragment;
   private _attributes: Attribute[];
   private _selectedAttributeIndex: number;
   private _attributeValue?: any;
@@ -58,7 +62,6 @@ export class ZHAClusterAttributes extends LitElement {
       isWide: {},
       showHelp: {},
       selectedNode: {},
-      selectedEntity: {},
       selectedCluster: {},
       _attributes: {},
       _selectedAttributeIndex: {},
@@ -80,7 +83,6 @@ export class ZHAClusterAttributes extends LitElement {
 
   protected render(): TemplateResult | void {
     return html`
-      ${this.renderStyle()}
       <ha-config-section .isWide="${this.isWide}">
         <div style="position: relative" slot="header">
           <span>Cluster Attributes</span>
@@ -93,7 +95,7 @@ export class ZHAClusterAttributes extends LitElement {
         </div>
         <span slot="introduction">View and edit cluster attributes.</span>
 
-        <paper-card class="content">
+        <ha-card class="content">
           <div class="attribute-picker">
             <paper-dropdown-menu
               label="Attributes of the selected cluster"
@@ -104,33 +106,30 @@ export class ZHAClusterAttributes extends LitElement {
                 .selected="${this._selectedAttributeIndex}"
                 @iron-select="${this._selectedAttributeChanged}"
               >
-                ${
-                  this._attributes.map(
-                    (entry) => html`
-                      <paper-item
-                        >${entry.name + " (id: " + entry.id + ")"}</paper-item
-                      >
-                    `
-                  )
-                }
+                ${this._attributes.map(
+                  (entry) => html`
+                    <paper-item
+                      >${entry.name +
+                        " (id: " +
+                        formatAsPaddedHex(entry.id) +
+                        ")"}</paper-item
+                    >
+                  `
+                )}
               </paper-listbox>
             </paper-dropdown-menu>
           </div>
-          ${
-            this.showHelp
-              ? html`
-                  <div style="color: grey; padding: 16px">
-                    Select an attribute to view or set its value
-                  </div>
-                `
-              : ""
-          }
-          ${
-            this._selectedAttributeIndex !== -1
-              ? this._renderAttributeInteractions()
-              : ""
-          }
-        </paper-card>
+          ${this.showHelp
+            ? html`
+                <div class="help-text">
+                  Select an attribute to view or set its value
+                </div>
+              `
+            : ""}
+          ${this._selectedAttributeIndex !== -1
+            ? this._renderAttributeInteractions()
+            : ""}
+        </ha-card>
       </ha-config-section>
     `;
   }
@@ -156,9 +155,16 @@ export class ZHAClusterAttributes extends LitElement {
         ></paper-input>
       </div>
       <div class="card-actions">
-        <paper-button @click="${this._onGetZigbeeAttributeClick}"
-          >Get Zigbee Attribute</paper-button
+        <mwc-button @click="${this._onGetZigbeeAttributeClick}"
+          >Get Zigbee Attribute</mwc-button
         >
+        ${this.showHelp
+          ? html`
+              <div class="help-text2">
+                Get the value for the selected attribute
+              </div>
+            `
+          : ""}
         <ha-call-service-button
           .hass="${this.hass}"
           domain="zha"
@@ -166,65 +172,69 @@ export class ZHAClusterAttributes extends LitElement {
           .serviceData="${this._setAttributeServiceData}"
           >Set Zigbee Attribute</ha-call-service-button
         >
-        ${
-          this.showHelp
-            ? html`
-                <ha-service-description
-                  .hass="${this.hass}"
-                  domain="zha"
-                  service="set_zigbee_cluster_attribute"
-                ></ha-service-description>
-              `
-            : ""
-        }
+        ${this.showHelp
+          ? html`
+              <ha-service-description
+                .hass="${this.hass}"
+                domain="zha"
+                service="set_zigbee_cluster_attribute"
+                class="help-text2"
+              ></ha-service-description>
+            `
+          : ""}
       </div>
     `;
   }
 
   private async _fetchAttributesForCluster(): Promise<void> {
-    if (this.selectedEntity && this.selectedCluster && this.hass) {
+    if (this.selectedNode && this.selectedCluster && this.hass) {
       this._attributes = await fetchAttributesForCluster(
         this.hass,
-        this.selectedEntity!.entity_id,
-        this.selectedEntity!.device_info!.identifiers[0][1],
+        this.selectedNode!.ieee,
+        this.selectedCluster!.endpoint_id,
         this.selectedCluster!.id,
         this.selectedCluster!.type
       );
+      this._attributes.sort((a, b) => {
+        return a.name.localeCompare(b.name);
+      });
     }
   }
 
   private _computeReadAttributeServiceData():
     | ReadAttributeServiceData
     | undefined {
-    if (!this.selectedEntity || !this.selectedCluster || !this.selectedNode) {
+    if (!this.selectedCluster || !this.selectedNode) {
       return;
     }
     return {
-      entity_id: this.selectedEntity!.entity_id,
+      ieee: this.selectedNode!.ieee,
+      endpoint_id: this.selectedCluster!.endpoint_id,
       cluster_id: this.selectedCluster!.id,
       cluster_type: this.selectedCluster!.type,
       attribute: this._attributes[this._selectedAttributeIndex].id,
       manufacturer: this._manufacturerCodeOverride
         ? parseInt(this._manufacturerCodeOverride as string, 10)
-        : this.selectedNode!.attributes.manufacturer_code,
+        : undefined,
     };
   }
 
   private _computeSetAttributeServiceData():
     | SetAttributeServiceData
     | undefined {
-    if (!this.selectedEntity || !this.selectedCluster || !this.selectedNode) {
+    if (!this.selectedCluster || !this.selectedNode) {
       return;
     }
     return {
-      entity_id: this.selectedEntity!.entity_id,
+      ieee: this.selectedNode!.ieee,
+      endpoint_id: this.selectedCluster!.endpoint_id,
       cluster_id: this.selectedCluster!.id,
       cluster_type: this.selectedCluster!.type,
       attribute: this._attributes[this._selectedAttributeIndex].id,
       value: this._attributeValue,
       manufacturer: this._manufacturerCodeOverride
         ? parseInt(this._manufacturerCodeOverride as string, 10)
-        : this.selectedNode!.attributes.manufacturer_code,
+        : undefined,
     };
   }
 
@@ -254,30 +264,23 @@ export class ZHAClusterAttributes extends LitElement {
     this._attributeValue = "";
   }
 
-  private renderStyle(): TemplateResult {
-    if (!this._haStyle) {
-      this._haStyle = document.importNode(
-        (document.getElementById("ha-style")!
-          .children[0] as HTMLTemplateElement).content,
-        true
-      );
-    }
-    if (!this._ironFlex) {
-      this._ironFlex = document.importNode(
-        (document.getElementById("iron-flex")!
-          .children[0] as HTMLTemplateElement).content,
-        true
-      );
-    }
-    return html`
-      ${this._ironFlex} ${this._haStyle}
-      <style>
+  static get styles(): CSSResult[] {
+    return [
+      haStyle,
+      css`
+        .flex {
+          -ms-flex: 1 1 0.000000001px;
+          -webkit-flex: 1;
+          flex: 1;
+          -webkit-flex-basis: 0.000000001px;
+          flex-basis: 0.000000001px;
+        }
+
         .content {
           margin-top: 24px;
         }
 
-        paper-card {
-          display: block;
+        ha-card {
           margin: 0 auto;
           max-width: 600px;
         }
@@ -287,8 +290,15 @@ export class ZHAClusterAttributes extends LitElement {
         }
 
         .attribute-picker {
-          @apply --layout-horizontal;
-          @apply --layout-center-center;
+          display: -ms-flexbox;
+          display: -webkit-flex;
+          display: flex;
+          -ms-flex-direction: row;
+          -webkit-flex-direction: row;
+          flex-direction: row;
+          -ms-flex-align: center;
+          -webkit-align-items: center;
+          align-items: center;
           padding-left: 28px;
           padding-right: 28px;
           padding-bottom: 10px;
@@ -315,8 +325,18 @@ export class ZHAClusterAttributes extends LitElement {
         [hidden] {
           display: none;
         }
-      </style>
-    `;
+        .help-text {
+          color: grey;
+          padding-left: 28px;
+          padding-right: 28px;
+          padding-bottom: 16px;
+        }
+        .help-text2 {
+          color: grey;
+          padding: 16px;
+        }
+      `,
+    ];
   }
 }
 

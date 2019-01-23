@@ -1,7 +1,16 @@
 import { fireEvent } from "./dom/fire_event";
 
+declare global {
+  // for fire event
+  interface HASSDomEvents {
+    "location-changed": {
+      replace: boolean;
+    };
+  }
+}
+
 export const navigate = (
-  node: HTMLElement,
+  _node: any,
   path: string,
   replace: boolean = false
 ) => {
@@ -18,5 +27,7 @@ export const navigate = (
       history.pushState(null, "", path);
     }
   }
-  fireEvent(node, "location-changed");
+  fireEvent(window, "location-changed", {
+    replace,
+  });
 };

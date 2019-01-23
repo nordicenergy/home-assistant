@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/cards/hui-glance-card.ts b/src/panels/lovelace/cards/hui-glance-card.ts	(rejected hunks)
+@@ -33 +33,3 @@ export class HuiGlanceCard extends LitElement implements LovelaceCard {
+-    await import(/* webpackChunkName: "hui-glance-card-editor" */ "../editor/config-elements/hui-glance-card-editor");
++    await import(
++      /* webpackChunkName: "hui-glance-card-editor" */ "../editor/config-elements/hui-glance-card-editor"
++    );

@@ -1,41 +1,43 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  property,
+  CSSResult,
+  css,
+  customElement,
+  PropertyValues,
 } from "lit-element";
 
 import "../components/hui-generic-entity-row";
 import "../components/hui-timestamp-display";
-import "./hui-error-entity-row";
+import "../components/hui-warning";
 
 import { HomeAssistant } from "../../../types";
 import { EntityRow, EntityConfig } from "./types";
+import { hasConfigOrEntityChanged } from "../common/has-changed";
 
 import computeStateDisplay from "../../../common/entity/compute_state_display";
-import { hassLocalizeLitMixin } from "../../../mixins/lit-localize-mixin";
 
 interface SensorEntityConfig extends EntityConfig {
   format?: "relative" | "date" | "time" | "datetime";
 }
 
-class HuiSensorEntityRow extends hassLocalizeLitMixin(LitElement)
-  implements EntityRow {
-  public hass?: HomeAssistant;
-  private _config?: SensorEntityConfig;
+@customElement("hui-sensor-entity-row")
+class HuiSensorEntityRow extends LitElement implements EntityRow {
+  @property() public hass?: HomeAssistant;
 
-  static get properties(): PropertyDeclarations {
-    return {
-      hass: {},
-      _config: {},
-    };
-  }
+  @property() private _config?: SensorEntityConfig;
 
   public setConfig(config: SensorEntityConfig): void {
     if (!config) {
       throw new Error("Configuration error");
     }
     this._config = config;
+  }
+
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    return hasConfigOrEntityChanged(this, changedProps);
   }
 
   protected render(): TemplateResult | void {
@@ -47,39 +49,43 @@ class HuiSensorEntityRow extends hassLocalizeLitMixin(LitElement)
 
     if (!stateObj) {
       return html`
-        <hui-error-entity-row
-          .entity="${this._config.entity}"
-        ></hui-error-entity-row>
+        <hui-warning
+          >${this.hass.localize(
+            "ui.panel.lovelace.warning.entity_not_found",
+            "entity",
+            this._config.entity
+          )}</hui-warning
+        >
       `;
     }
 
     return html`
-      ${this.renderStyle()}
       <hui-generic-entity-row .hass="${this.hass}" .config="${this._config}">
         <div>
-          ${
-            stateObj.attributes.device_class === "timestamp"
-              ? html`
-                  <hui-timestamp-display
-                    .hass="${this.hass}"
-                    .ts="${new Date(stateObj.state)}"
-                    .format="${this._config.format}"
-                  ></hui-timestamp-display>
-                `
-              : computeStateDisplay(this.localize, stateObj, this.hass.language)
-          }
+          ${stateObj.attributes.device_class === "timestamp" &&
+          stateObj.state !== "unavailable"
+            ? html`
+                <hui-timestamp-display
+                  .hass="${this.hass}"
+                  .ts="${new Date(stateObj.state)}"
+                  .format="${this._config.format}"
+                ></hui-timestamp-display>
+              `
+            : computeStateDisplay(
+                this.hass!.localize,
+                stateObj,
+                this.hass.language
+              )}
         </div>
       </hui-generic-entity-row>
     `;
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        div {
-          text-align: right;
-        }
-      </style>
+  static get styles(): CSSResult {
+    return css`
+      div {
+        text-align: right;
+      }
     `;
   }
 }
@@ -89,5 +95,3 @@ declare global {
     "hui-sensor-entity-row": HuiSensorEntityRow;
   }
 }
-
-customElements.define("hui-sensor-entity-row", HuiSensorEntityRow);

@@ -6,8 +6,7 @@ import {
   PropertyDeclarations,
 } from "lit-element";
 import { until } from "lit-html/directives/until";
-import "@polymer/paper-icon-button";
-import "@polymer/paper-button";
+import "@material/mwc-button";
 import "@polymer/paper-spinner/paper-spinner-lite";
 import "../../../src/components/ha-card";
 import { LovelaceCard, Lovelace } from "../../../src/panels/lovelace/types";
@@ -22,8 +21,9 @@ import {
 
 export class HADemoCard extends LitElement implements LovelaceCard {
   public lovelace?: Lovelace;
-  public hass?: MockHomeAssistant;
+  public hass!: MockHomeAssistant;
   private _switching?: boolean;
+  private _hidden = localStorage.hide_demo_card;
 
   static get properties(): PropertyDeclarations {
     return {
@@ -34,7 +34,7 @@ export class HADemoCard extends LitElement implements LovelaceCard {
   }
 
   public getCardSize() {
-    return 2;
+    return this._hidden ? 0 : 2;
   }
 
   public setConfig(
@@ -44,62 +44,58 @@ export class HADemoCard extends LitElement implements LovelaceCard {
   ) {}
 
   protected render() {
+    if (this._hidden) {
+      return;
+    }
     return html`
       <ha-card>
         <div class="picker">
-          <paper-icon-button
-            @click=${this._prevConfig}
-            icon="hass:chevron-right"
-            style="transform: rotate(180deg)"
-            .disabled=${this._switching}
-          ></paper-icon-button>
-          <div>
-            ${
-              this._switching
-                ? html`
-                    <paper-spinner-lite active></paper-spinner-lite>
-                  `
-                : until(
-                    selectedDemoConfig.then(
-                      (conf) => html`
-                        ${conf.name}
-                        <small>
-                          by
-                          <a target="_blank" href="${conf.authorUrl}">
-                            ${conf.authorName}
-                          </a>
-                        </small>
-                      `
-                    ),
-                    ""
-                  )
-            }
+          <div class="label">
+            ${this._switching
+              ? html`
+                  <paper-spinner-lite active></paper-spinner-lite>
+                `
+              : until(
+                  selectedDemoConfig.then(
+                    (conf) => html`
+                      ${conf.name}
+                      <small>
+                        <a target="_blank" href="${conf.authorUrl}">
+                          ${this.hass.localize(
+                            "ui.panel.page-demo.cards.demo.demo_by",
+                            "name",
+                            conf.authorName
+                          )}
+                        </a>
+                      </small>
+                    `
+                  ),
+                  ""
+                )}
           </div>
-          <paper-icon-button
-            @click=${this._nextConfig}
-            icon="hass:chevron-right"
-            .disabled=${this._switching}
-          ></paper-icon-button>
+          <mwc-button @click=${this._nextConfig} .disabled=${this._switching}>
+            ${this.hass.localize("ui.panel.page-demo.cards.demo.next_demo")}
+          </mwc-button>
         </div>
-        <div class="content">
-          Welcome home! You've reached the Home Assistant demo where we showcase
-          the best UIs created by our community.
+        <div class="content small-hidden">
+          ${this.hass.localize("ui.panel.page-demo.cards.demo.introduction")}
         </div>
-        <div class="actions">
+        <div class="actions small-hidden">
           <a href="https://www.home-assistant.io" target="_blank">
-            <paper-button>Learn more about Home Assistant</paper-button>
+            <mwc-button>
+              ${this.hass.localize("ui.panel.page-demo.cards.demo.learn_more")}
+            </mwc-button>
           </a>
         </div>
       </ha-card>
     `;
   }
 
-  private _prevConfig() {
-    this._updateConfig(
-      selectedDemoConfigIndex > 0
-        ? selectedDemoConfigIndex - 1
-        : demoConfigs.length - 1
-    );
+  protected firstUpdated(changedProps) {
+    super.firstUpdated(changedProps);
+    if (this._hidden) {
+      this.style.display = "none";
+    }
   }
 
   private _nextConfig() {
@@ -113,7 +109,7 @@ export class HADemoCard extends LitElement implements LovelaceCard {
   private async _updateConfig(index: number) {
     this._switching = true;
     try {
-      await setDemoConfig(this.hass!, this.lovelace!, index);
+      await setDemoConfig(this.hass, this.lovelace!, index);
     } catch (err) {
       alert("Failed to switch config :-(");
     } finally {
@@ -128,6 +124,10 @@ export class HADemoCard extends LitElement implements LovelaceCard {
           color: var(--primary-color);
         }
 
+        .actions a {
+          text-decoration: none;
+        }
+
         .content {
           padding: 16px;
         }
@@ -139,21 +139,26 @@ export class HADemoCard extends LitElement implements LovelaceCard {
           height: 60px;
         }
 
-        .picker div {
-          text-align: center;
+        .picker mwc-button {
+          margin-right: 8px;
         }
 
-        .picker small {
+        .label {
+          padding-left: 16px;
+        }
+
+        .label small {
           display: block;
         }
 
         .actions {
-          padding-left: 5px;
+          padding-left: 8px;
         }
 
-        .actions paper-button {
-          color: var(--primary-color);
-          font-weight: 500;
+        @media only screen and (max-width: 500px) {
+          .small-hidden {
+            display: none;
+          }
         }
       `,
     ];

@@ -1,13 +1,13 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
 } from "lit-element";
 import "@polymer/paper-input/paper-input";
 
 import { EditorTarget } from "../types";
-import { hassLocalizeLitMixin } from "../../../../mixins/lit-localize-mixin";
 import { HomeAssistant } from "../../../../types";
 import { fireEvent } from "../../../../common/dom/fire_event";
 import { configElementStyle } from "../config-elements/config-elements-style";
@@ -22,13 +22,11 @@ declare global {
   }
 }
 
-export class HuiLovelaceEditor extends hassLocalizeLitMixin(LitElement) {
-  static get properties(): PropertyDeclarations {
-    return { hass: {}, config: {} };
-  }
+@customElement("hui-lovelace-editor")
+export class HuiLovelaceEditor extends LitElement {
+  @property() public hass?: HomeAssistant;
 
-  public hass?: HomeAssistant;
-  public config?: LovelaceConfig;
+  @property() public config?: LovelaceConfig;
 
   get _title(): string {
     if (!this.config) {
@@ -80,5 +78,3 @@ declare global {
     "hui-lovelace-editor": HuiLovelaceEditor;
   }
 }
-
-customElements.define("hui-lovelace-editor", HuiLovelaceEditor);

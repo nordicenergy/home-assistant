@@ -1,0 +1,6 @@
+diff a/src/components/entity/ha-chart-base.js b/src/components/entity/ha-chart-base.js	(rejected hunks)
+@@ -218 +218,3 @@ class HaChartBase extends mixinBehaviors(
+-      scriptsLoaded = import(/* webpackChunkName: "load_chart" */ "../../resources/ha-chart-scripts.js");
++      scriptsLoaded = import(
++        /* webpackChunkName: "load_chart" */ "../../resources/ha-chart-scripts.js"
++      );

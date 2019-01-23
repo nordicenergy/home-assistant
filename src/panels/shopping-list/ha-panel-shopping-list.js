@@ -1,7 +1,6 @@
 import "@polymer/app-layout/app-header-layout/app-header-layout";
 import "@polymer/app-layout/app-header/app-header";
 import "@polymer/app-layout/app-toolbar/app-toolbar";
-import "@polymer/paper-card/paper-card";
 import "@polymer/paper-checkbox/paper-checkbox";
 import "@polymer/paper-icon-button/paper-icon-button";
 import "@polymer/paper-input/paper-input";
@@ -15,6 +14,7 @@ import { PolymerElement } from "@polymer/polymer/polymer-element";
 
 import "../../components/ha-menu-button";
 import "../../components/ha-start-voice-button";
+import "../../components/ha-card";
 import LocalizeMixin from "../../mixins/localize-mixin";
 
 /*
@@ -37,9 +37,6 @@ class HaPanelShoppingList extends LocalizeMixin(PolymerElement) {
           padding-bottom: 32px;
           max-width: 600px;
           margin: 0 auto;
-        }
-        paper-card {
-          display: block;
         }
         paper-icon-item {
           border-top: 1px solid var(--divider-color);
@@ -71,8 +68,8 @@ class HaPanelShoppingList extends LocalizeMixin(PolymerElement) {
         <app-header slot="header" fixed>
           <app-toolbar>
             <ha-menu-button
+              hass="[[hass]]"
               narrow="[[narrow]]"
-              show-menu="[[showMenu]]"
             ></ha-menu-button>
             <div main-title>[[localize('panel.shopping_list')]]</div>
             <ha-start-voice-button
@@ -98,7 +95,7 @@ class HaPanelShoppingList extends LocalizeMixin(PolymerElement) {
         </app-header>
 
         <div class="content">
-          <paper-card>
+          <ha-card>
             <paper-icon-item on-focus="_focusRowInput">
               <paper-icon-button
                 slot="item-icon"
@@ -133,7 +130,7 @@ class HaPanelShoppingList extends LocalizeMixin(PolymerElement) {
                 </paper-item-body>
               </paper-icon-item>
             </template>
-          </paper-card>
+          </ha-card>
           <div class="tip" hidden$="[[!canListen]]">
             [[localize('ui.panel.shopping-list.microphone_tip')]]
           </div>
@@ -146,7 +143,6 @@ class HaPanelShoppingList extends LocalizeMixin(PolymerElement) {
     return {
       hass: Object,
       narrow: Boolean,
-      showMenu: Boolean,
       canListen: Boolean,
       items: {
         type: Array,

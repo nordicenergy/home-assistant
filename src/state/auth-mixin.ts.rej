@@ -1,0 +1,6 @@
+diff a/src/state/auth-mixin.ts b/src/state/auth-mixin.ts	(rejected hunks)
+@@ -33 +33,3 @@ export default (superClass: Constructor<LitElement & HassBaseEl>) =>
+-            import(/* webpackChunkName: "ha-store-auth-card" */ "../dialogs/ha-store-auth-card")
++            import(
++              /* webpackChunkName: "ha-store-auth-card" */ "../dialogs/ha-store-auth-card"
++            )

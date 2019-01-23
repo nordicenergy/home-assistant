@@ -1,0 +1,17 @@
+diff a/src/panels/lovelace/cards/hui-sensor-card.ts b/src/panels/lovelace/cards/hui-sensor-card.ts	(rejected hunks)
+@@ -111,2 +111,8 @@ const coordinates = (
+-  const min = Math.min.apply(Math, history.map((item) => item.state));
+-  const max = Math.max.apply(Math, history.map((item) => item.state));
++  const min = Math.min.apply(
++    Math,
++    history.map((item) => item.state)
++  );
++  const max = Math.max.apply(
++    Math,
++    history.map((item) => item.state)
++  );
+@@ -144 +150,3 @@ class HuiSensorCard extends LitElement implements LovelaceCard {
+-    await import(/* webpackChunkName: "hui-sensor-card-editor" */ "../editor/config-elements/hui-sensor-card-editor");
++    await import(
++      /* webpackChunkName: "hui-sensor-card-editor" */ "../editor/config-elements/hui-sensor-card-editor"
++    );

@@ -1,11 +1,11 @@
 import { HomeAssistant } from "../types";
+import { Connection, getCollection } from "home-assistant-js-websocket";
 
 export interface LovelaceConfig {
   title?: string;
   views: LovelaceViewConfig[];
   background?: string;
   resources?: Array<{ type: "css" | "js" | "module" | "html"; url: string }>;
-  excluded_entities?: string[];
 }
 
 export interface LovelaceViewConfig {
@@ -34,7 +34,10 @@ export interface ToggleActionConfig {
 export interface CallServiceActionConfig {
   action: "call-service";
   service: string;
-  service_data?: { [key: string]: any };
+  service_data?: {
+    entity_id?: string | [string];
+    [key: string]: any;
+  };
 }
 
 export interface NavigateActionConfig {
@@ -58,10 +61,10 @@ export type ActionConfig =
   | NoActionConfig;
 
 export const fetchConfig = (
-  hass: HomeAssistant,
+  conn: Connection,
   force: boolean
 ): Promise<LovelaceConfig> =>
-  hass.callWS({
+  conn.sendMessagePromise({
     type: "lovelace/config",
     force,
   });
@@ -74,3 +77,23 @@ export const saveConfig = (
     type: "lovelace/config/save",
     config,
   });
+
+export const subscribeLovelaceUpdates = (
+  conn: Connection,
+  onChange: () => void
+) => conn.subscribeEvents(onChange, "lovelace_updated");
+
+export const getLovelaceCollection = (conn: Connection) =>
+  getCollection(
+    conn,
+    "_lovelace",
+    (conn2) => fetchConfig(conn2, false),
+    (_conn, store) =>
+      subscribeLovelaceUpdates(conn, () =>
+        fetchConfig(conn, false).then((config) => store.setState(config, true))
+      )
+  );
+
+export interface WindowWithLovelaceProm extends Window {
+  llConfProm?: Promise<LovelaceConfig>;
+}

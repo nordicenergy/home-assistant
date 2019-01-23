@@ -45,6 +45,7 @@ export const DOMAINS_WITH_MORE_INFO = [
   "media_player",
   "script",
   "sun",
+  "timer",
   "updater",
   "vacuum",
   "water_heater",
@@ -77,6 +78,8 @@ export const DOMAINS_TOGGLE = new Set([
   "input_boolean",
   "light",
   "switch",
+  "group",
+  "automation",
 ]);
 
 /** Temperature units. */

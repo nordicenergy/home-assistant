@@ -1,14 +1,23 @@
-import { html, LitElement, TemplateResult } from "lit-element";
+import {
+  html,
+  LitElement,
+  TemplateResult,
+  property,
+  customElement,
+  CSSResult,
+  css,
+} from "lit-element";
 
 import "../../../components/buttons/ha-call-service-button";
 
-import { LovelaceElement, LovelaceElementConfig } from "./types";
+import { LovelaceElement, ServiceButtonElementConfig } from "./types";
 import { HomeAssistant } from "../../../types";
 
+@customElement("hui-service-button-element")
 export class HuiServiceButtonElement extends LitElement
   implements LovelaceElement {
   public hass?: HomeAssistant;
-  private _config?: LovelaceElementConfig;
+  @property() private _config?: ServiceButtonElementConfig;
   private _domain?: string;
   private _service?: string;
 
@@ -16,7 +25,7 @@ export class HuiServiceButtonElement extends LitElement
     return { _config: {} };
   }
 
-  public setConfig(config: LovelaceElementConfig): void {
+  public setConfig(config: ServiceButtonElementConfig): void {
     if (!config || !config.service) {
       throw Error("Invalid Configuration: 'service' required");
     }
@@ -37,12 +46,11 @@ export class HuiServiceButtonElement extends LitElement
   }
 
   protected render(): TemplateResult | void {
-    if (!this._config) {
+    if (!this._config || !this.hass) {
       return html``;
     }
 
     return html`
-      ${this.renderStyle()}
       <ha-call-service-button
         .hass="${this.hass}"
         .domain="${this._domain}"
@@ -53,14 +61,12 @@ export class HuiServiceButtonElement extends LitElement
     `;
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        ha-call-service-button {
-          color: var(--primary-color);
-          white-space: nowrap;
-        }
-      </style>
+  static get styles(): CSSResult {
+    return css`
+      ha-call-service-button {
+        color: var(--primary-color);
+        white-space: nowrap;
+      }
     `;
   }
 }
@@ -70,5 +76,3 @@ declare global {
     "hui-service-button-element": HuiServiceButtonElement;
   }
 }
-
-customElements.define("hui-service-button-element", HuiServiceButtonElement);

@@ -1,62 +1,45 @@
-import "@polymer/app-layout/app-header/app-header";
-import "@polymer/app-layout/app-toolbar/app-toolbar";
-import "@polymer/iron-flex-layout/iron-flex-layout-classes";
-import {
-  html,
-  LitElement,
-  PropertyDeclarations,
-  TemplateResult,
-} from "lit-element";
-import "@polymer/paper-icon-button/paper-icon-button";
-import { HassEntity } from "home-assistant-js-websocket";
-import { HASSDomEvent } from "../../../common/dom/fire_event";
-import { Cluster } from "../../../data/zha";
-import "../../../layouts/ha-app-layout";
-import "../../../resources/ha-style";
-import { HomeAssistant } from "../../../types";
-import {
-  ZHAClusterSelectedParams,
-  ZHAEntitySelectedParams,
-  ZHANodeSelectedParams,
-} from "./types";
+import "../../../components/ha-paper-icon-button-arrow-prev";
+import "../../../layouts/hass-subpage";
+import "./zha-binding";
 import "./zha-cluster-attributes";
 import "./zha-cluster-commands";
 import "./zha-network";
 import "./zha-node";
+import "@polymer/paper-icon-button/paper-icon-button";
+
+import {
+  CSSResult,
+  html,
+  LitElement,
+  property,
+  PropertyValues,
+  TemplateResult,
+} from "lit-element";
+
+import { HASSDomEvent } from "../../../common/dom/fire_event";
+import { Cluster, fetchBindableDevices, ZHADevice } from "../../../data/zha";
+import { haStyle } from "../../../resources/styles";
+import { HomeAssistant } from "../../../types";
+import { sortZHADevices } from "./functions";
+import { ZHAClusterSelectedParams, ZHADeviceSelectedParams } from "./types";
 
 export class HaConfigZha extends LitElement {
-  public hass?: HomeAssistant;
-  public isWide?: boolean;
-  private _haStyle?: DocumentFragment;
-  private _ironFlex?: DocumentFragment;
-  private _selectedNode?: HassEntity;
-  private _selectedCluster?: Cluster;
-  private _selectedEntity?: HassEntity;
+  @property() public hass?: HomeAssistant;
+  @property() public isWide?: boolean;
+  @property() private _selectedDevice?: ZHADevice;
+  @property() private _selectedCluster?: Cluster;
+  @property() private _bindableDevices: ZHADevice[] = [];
 
-  static get properties(): PropertyDeclarations {
-    return {
-      hass: {},
-      isWide: {},
-      _selectedCluster: {},
-      _selectedEntity: {},
-      _selectedNode: {},
-    };
+  protected updated(changedProperties: PropertyValues): void {
+    if (changedProperties.has("_selectedDevice")) {
+      this._fetchBindableDevices();
+    }
+    super.update(changedProperties);
   }
 
   protected render(): TemplateResult | void {
     return html`
-      ${this.renderStyle()}
-      <ha-app-layout>
-        <app-header slot="header">
-          <app-toolbar>
-            <paper-icon-button
-              icon="hass:arrow-left"
-              @click="${this._onBackTapped}"
-            ></paper-icon-button>
-            <div main-title>Zigbee Home Automation</div>
-          </app-toolbar>
-        </app-header>
-
+      <hass-subpage header="Zigbee Home Automation">
         <zha-network
           .isWide="${this.isWide}"
           .hass="${this.hass}"
@@ -66,31 +49,36 @@ export class HaConfigZha extends LitElement {
           .isWide="${this.isWide}"
           .hass="${this.hass}"
           @zha-cluster-selected="${this._onClusterSelected}"
-          @zha-node-selected="${this._onNodeSelected}"
-          @zha-entity-selected="${this._onEntitySelected}"
+          @zha-node-selected="${this._onDeviceSelected}"
         ></zha-node>
-        ${
-          this._selectedCluster
-            ? html`
-                <zha-cluster-attributes
-                  .isWide="${this.isWide}"
-                  .hass="${this.hass}"
-                  .selectedNode="${this._selectedNode}"
-                  .selectedEntity="${this._selectedEntity}"
-                  .selectedCluster="${this._selectedCluster}"
-                ></zha-cluster-attributes>
+        ${this._selectedCluster
+          ? html`
+              <zha-cluster-attributes
+                .isWide="${this.isWide}"
+                .hass="${this.hass}"
+                .selectedNode="${this._selectedDevice}"
+                .selectedCluster="${this._selectedCluster}"
+              ></zha-cluster-attributes>
 
-                <zha-cluster-commands
-                  .isWide="${this.isWide}"
-                  .hass="${this.hass}"
-                  .selectedNode="${this._selectedNode}"
-                  .selectedEntity="${this._selectedEntity}"
-                  .selectedCluster="${this._selectedCluster}"
-                ></zha-cluster-commands>
-              `
-            : ""
-        }
-      </ha-app-layout>
+              <zha-cluster-commands
+                .isWide="${this.isWide}"
+                .hass="${this.hass}"
+                .selectedNode="${this._selectedDevice}"
+                .selectedCluster="${this._selectedCluster}"
+              ></zha-cluster-commands>
+            `
+          : ""}
+        ${this._selectedDevice && this._bindableDevices.length > 0
+          ? html`
+              <zha-binding-control
+                .isWide="${this.isWide}"
+                .hass="${this.hass}"
+                .selectedDevice="${this._selectedDevice}"
+                .bindableDevices="${this._bindableDevices}"
+              ></zha-binding-control>
+            `
+          : ""}
+      </hass-subpage>
     `;
   }
 
@@ -100,42 +88,23 @@ export class HaConfigZha extends LitElement {
     this._selectedCluster = selectedClusterEvent.detail.cluster;
   }
 
-  private _onNodeSelected(
-    selectedNodeEvent: HASSDomEvent<ZHANodeSelectedParams>
+  private _onDeviceSelected(
+    selectedNodeEvent: HASSDomEvent<ZHADeviceSelectedParams>
   ): void {
-    this._selectedNode = selectedNodeEvent.detail.node;
+    this._selectedDevice = selectedNodeEvent.detail.node;
     this._selectedCluster = undefined;
-    this._selectedEntity = undefined;
   }
 
-  private _onEntitySelected(
-    selectedEntityEvent: HASSDomEvent<ZHAEntitySelectedParams>
-  ): void {
-    this._selectedEntity = selectedEntityEvent.detail.entity;
-  }
-
-  private renderStyle(): TemplateResult {
-    if (!this._haStyle) {
-      this._haStyle = document.importNode(
-        (document.getElementById("ha-style")!
-          .children[0] as HTMLTemplateElement).content,
-        true
-      );
+  private async _fetchBindableDevices(): Promise<void> {
+    if (this._selectedDevice && this.hass) {
+      this._bindableDevices = (
+        await fetchBindableDevices(this.hass, this._selectedDevice!.ieee)
+      ).sort(sortZHADevices);
     }
-    if (!this._ironFlex) {
-      this._ironFlex = document.importNode(
-        (document.getElementById("iron-flex")!
-          .children[0] as HTMLTemplateElement).content,
-        true
-      );
-    }
-    return html`
-      ${this._ironFlex} ${this._haStyle}
-    `;
   }
 
-  private _onBackTapped(): void {
-    history.back();
+  static get styles(): CSSResult[] {
+    return [haStyle];
   }
 }
 

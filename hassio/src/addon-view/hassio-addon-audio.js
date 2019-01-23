@@ -1,6 +1,6 @@
 import "web-animations-js/web-animations-next-lite.min";
 
-import "@polymer/paper-button/paper-button";
+import "@material/mwc-button";
 import "@polymer/paper-card/paper-card";
 import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
 import "@polymer/paper-item/paper-item";
@@ -9,7 +9,7 @@ import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
 import "../../../src/resources/ha-style";
-import EventsMixin from "../../../src/mixins/events-mixin";
+import { EventsMixin } from "../../../src/mixins/events-mixin";
 
 class HassioAddonAudio extends EventsMixin(PolymerElement) {
   static get template() {
@@ -44,9 +44,7 @@ class HassioAddonAudio extends EventsMixin(PolymerElement) {
               selected="{{selectedInput}}"
             >
               <template is="dom-repeat" items="[[inputDevices]]">
-                <paper-item device\$="[[item.device]]"
-                  >[[item.name]]</paper-item
-                >
+                <paper-item device$="[[item.device]]">[[item.name]]</paper-item>
               </template>
             </paper-listbox>
           </paper-dropdown-menu>
@@ -57,15 +55,13 @@ class HassioAddonAudio extends EventsMixin(PolymerElement) {
               selected="{{selectedOutput}}"
             >
               <template is="dom-repeat" items="[[outputDevices]]">
-                <paper-item device\$="[[item.device]]"
-                  >[[item.name]]</paper-item
-                >
+                <paper-item device$="[[item.device]]">[[item.name]]</paper-item>
               </template>
             </paper-listbox>
           </paper-dropdown-menu>
         </div>
         <div class="card-actions">
-          <paper-button on-click="_saveSettings">Save</paper-button>
+          <mwc-button on-click="_saveSettings">Save</mwc-button>
         </div>
       </paper-card>
     `;

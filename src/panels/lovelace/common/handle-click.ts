@@ -3,6 +3,7 @@ import { fireEvent } from "../../../common/dom/fire_event";
 import { navigate } from "../../../common/navigate";
 import { toggleEntity } from "../../../../src/panels/lovelace/common/entity/toggle-entity";
 import { ActionConfig } from "../../../data/lovelace";
+import { forwardHaptic } from "../../../data/haptics";
 
 export const handleClick = (
   node: HTMLElement,
@@ -33,7 +34,7 @@ export const handleClick = (
     case "more-info":
       if (config.entity || config.camera_image) {
         fireEvent(node, "hass-more-info", {
-          entityId: config.entity ? config.entity! : config.camera_image!,
+          entityId: config.entity ? config.entity : config.camera_image!,
         });
       }
       break;
@@ -49,10 +50,12 @@ export const handleClick = (
       break;
     case "call-service": {
       if (!actionConfig.service) {
+        forwardHaptic("failure");
         return;
       }
       const [domain, service] = actionConfig.service.split(".", 2);
       hass.callService(domain, service, actionConfig.service_data);
     }
   }
+  forwardHaptic("light");
 };

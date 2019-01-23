@@ -1,0 +1,6 @@
+diff a/src/dialogs/config-flow/show-dialog-data-entry-flow.ts b/src/dialogs/config-flow/show-dialog-data-entry-flow.ts	(rejected hunks)
+@@ -81 +81,3 @@ export const loadDataEntryFlowDialog = () =>
+-  import(/* webpackChunkName: "dialog-config-flow" */ "./dialog-data-entry-flow");
++  import(
++    /* webpackChunkName: "dialog-config-flow" */ "./dialog-data-entry-flow"
++  );

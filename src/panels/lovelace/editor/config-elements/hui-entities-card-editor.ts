@@ -1,32 +1,32 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
 } from "lit-element";
 import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
 import "@polymer/paper-item/paper-item";
 import "@polymer/paper-listbox/paper-listbox";
 import "@polymer/paper-toggle-button/paper-toggle-button";
 
-import { processEditorEntities } from "../process-editor-entities";
-import { struct } from "../../common/structs/struct";
-import { EntitiesEditorEvent, EditorTarget } from "../types";
-import { hassLocalizeLitMixin } from "../../../../mixins/lit-localize-mixin";
-import { HomeAssistant } from "../../../../types";
-import { LovelaceCardEditor } from "../../types";
-import { fireEvent } from "../../../../common/dom/fire_event";
-import {
-  EntitiesCardConfig,
-  EntitiesCardEntityConfig,
-} from "../../cards/hui-entities-card";
-import { configElementStyle } from "./config-elements-style";
-
 import "../../../../components/entity/state-badge";
 import "../../components/hui-theme-select-editor";
 import "../../components/hui-entity-editor";
 import "../../../../components/ha-card";
 import "../../../../components/ha-icon";
+
+import { processEditorEntities } from "../process-editor-entities";
+import { struct } from "../../common/structs/struct";
+import { EntitiesEditorEvent, EditorTarget } from "../types";
+import { HomeAssistant } from "../../../../types";
+import { LovelaceCardEditor } from "../../types";
+import { fireEvent } from "../../../../common/dom/fire_event";
+import { configElementStyle } from "./config-elements-style";
+import {
+  EntitiesCardConfig,
+  EntitiesCardEntityConfig,
+} from "../../cards/types";
 
 const entitiesConfigStruct = struct.union([
   {
@@ -45,10 +45,19 @@ const cardConfigStruct = struct({
   entities: [entitiesConfigStruct],
 });
 
-export class HuiEntitiesCardEditor extends hassLocalizeLitMixin(LitElement)
+@customElement("hui-entities-card-editor")
+export class HuiEntitiesCardEditor extends LitElement
   implements LovelaceCardEditor {
-  static get properties(): PropertyDeclarations {
-    return { hass: {}, _config: {}, _configEntities: {} };
+  @property() public hass?: HomeAssistant;
+
+  @property() private _config?: EntitiesCardConfig;
+
+  @property() private _configEntities?: EntitiesCardEntityConfig[];
+
+  public setConfig(config: EntitiesCardConfig): void {
+    config = cardConfigStruct(config);
+    this._config = config;
+    this._configEntities = processEditorEntities(config.entities);
   }
 
   get _title(): string {
@@ -57,16 +66,6 @@ export class HuiEntitiesCardEditor extends hassLocalizeLitMixin(LitElement)
 
   get _theme(): string {
     return this._config!.theme || "Backend-selected";
-  }
-
-  public hass?: HomeAssistant;
-  private _config?: EntitiesCardConfig;
-  private _configEntities?: EntitiesCardEntityConfig[];
-
-  public setConfig(config: EntitiesCardConfig): void {
-    config = cardConfigStruct(config);
-    this._config = config;
-    this._configEntities = processEditorEntities(config.entities);
   }
 
   protected render(): TemplateResult | void {
@@ -142,5 +141,3 @@ declare global {
     "hui-entities-card-editor": HuiEntitiesCardEditor;
   }
 }
-
-customElements.define("hui-entities-card-editor", HuiEntitiesCardEditor);

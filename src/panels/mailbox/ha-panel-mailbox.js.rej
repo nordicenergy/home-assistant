@@ -1,0 +1,6 @@
+diff a/src/panels/mailbox/ha-panel-mailbox.js b/src/panels/mailbox/ha-panel-mailbox.js	(rejected hunks)
+@@ -160 +160,3 @@ class HaPanelMailbox extends EventsMixin(LocalizeMixin(PolymerElement)) {
+-          import(/* webpackChunkName: "ha-dialog-show-audio-message" */ "./ha-dialog-show-audio-message"),
++          import(
++            /* webpackChunkName: "ha-dialog-show-audio-message" */ "./ha-dialog-show-audio-message"
++          ),

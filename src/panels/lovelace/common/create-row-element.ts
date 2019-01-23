@@ -10,6 +10,7 @@ import {
 import "../entity-rows/hui-climate-entity-row";
 import "../entity-rows/hui-cover-entity-row";
 import "../entity-rows/hui-group-entity-row";
+import "../entity-rows/hui-input-datetime-entity-row";
 import "../entity-rows/hui-input-number-entity-row";
 import "../entity-rows/hui-input-select-entity-row";
 import "../entity-rows/hui-input-text-entity-row";
@@ -25,6 +26,7 @@ import "../special-rows/hui-call-service-row";
 import "../special-rows/hui-divider-row";
 import "../special-rows/hui-section-row";
 import "../special-rows/hui-weblink-row";
+import "../special-rows/hui-cast-row";
 import { EntityConfig, EntityRow } from "../entity-rows/types";
 
 const CUSTOM_TYPE_PREFIX = "custom:";
@@ -33,6 +35,8 @@ const SPECIAL_TYPES = new Set([
   "divider",
   "section",
   "weblink",
+  "cast",
+  "select",
 ]);
 const DOMAIN_TO_ELEMENT_TYPE = {
   alert: "toggle",
@@ -46,8 +50,9 @@ const DOMAIN_TO_ELEMENT_TYPE = {
   input_select: "input-select",
   input_text: "input-text",
   light: "toggle",
-  media_player: "media-player",
   lock: "lock",
+  media_player: "media-player",
+  remote: "toggle",
   scene: "scene",
   script: "script",
   sensor: "sensor",
@@ -57,6 +62,7 @@ const DOMAIN_TO_ELEMENT_TYPE = {
   // Temporary. Once climate is rewritten,
   // water heater should get it's own row.
   water_heater: "climate",
+  input_datetime: "input-datetime",
 };
 const TIMEOUT = 2000;
 
@@ -124,6 +130,10 @@ export const createRowElement = (
     });
 
     return element;
+  }
+
+  if (!config.entity) {
+    return _createErrorElement("Invalid config given.", config);
   }
 
   const domain = config.entity.split(".", 1)[0];

@@ -1,36 +1,34 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
 } from "lit-element";
 import "@polymer/paper-input/paper-input";
 
 import { struct } from "../../common/structs/struct";
 import { EntitiesEditorEvent, EditorTarget } from "../types";
-import { hassLocalizeLitMixin } from "../../../../mixins/lit-localize-mixin";
 import { HomeAssistant } from "../../../../types";
 import { LovelaceCardEditor } from "../../types";
 import { fireEvent } from "../../../../common/dom/fire_event";
-import { Config } from "../../cards/hui-shopping-list-card";
+import { ShoppingListCardConfig } from "../../cards/types";
 
 const cardConfigStruct = struct({
   type: "string",
   title: "string?",
 });
 
-export class HuiShoppingListEditor extends hassLocalizeLitMixin(LitElement)
+@customElement("hui-shopping-list-card-editor")
+export class HuiShoppingListEditor extends LitElement
   implements LovelaceCardEditor {
-  public hass?: HomeAssistant;
-  private _config?: Config;
+  @property() public hass?: HomeAssistant;
 
-  public setConfig(config: Config): void {
+  @property() private _config?: ShoppingListCardConfig;
+
+  public setConfig(config: ShoppingListCardConfig): void {
     config = cardConfigStruct(config);
     this._config = config;
-  }
-
-  static get properties(): PropertyDeclarations {
-    return { hass: {}, _config: {} };
   }
 
   get _title(): string {
@@ -82,5 +80,3 @@ declare global {
     "hui-shopping-list-card-editor": HuiShoppingListEditor;
   }
 }
-
-customElements.define("hui-shopping-list-card-editor", HuiShoppingListEditor);

@@ -1,28 +1,28 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
+  css,
+  CSSResult,
 } from "lit-element";
 
 import "../../../components/ha-card";
 
 import { LovelaceCard, LovelaceCardEditor } from "../types";
-import { LovelaceCardConfig, ActionConfig } from "../../../data/lovelace";
 import { HomeAssistant } from "../../../types";
 import { classMap } from "lit-html/directives/class-map";
 import { handleClick } from "../common/handle-click";
 import { longPress } from "../common/directives/long-press-directive";
+import { PictureCardConfig } from "./types";
 
-export interface Config extends LovelaceCardConfig {
-  image?: string;
-  tap_action?: ActionConfig;
-  hold_action?: ActionConfig;
-}
-
+@customElement("hui-picture-card")
 export class HuiPictureCard extends LitElement implements LovelaceCard {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import(/* webpackChunkName: "hui-picture-card-editor" */ "../editor/config-elements/hui-picture-card-editor");
+    await import(
+      /* webpackChunkName: "hui-picture-card-editor" */ "../editor/config-elements/hui-picture-card-editor"
+    );
     return document.createElement("hui-picture-card-editor");
   }
   public static getStubConfig(): object {
@@ -35,17 +35,14 @@ export class HuiPictureCard extends LitElement implements LovelaceCard {
   }
 
   public hass?: HomeAssistant;
-  protected _config?: Config;
 
-  static get properties(): PropertyDeclarations {
-    return { _config: {} };
-  }
+  @property() protected _config?: PictureCardConfig;
 
   public getCardSize(): number {
     return 3;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: PictureCardConfig): void {
     if (!config || !config.image) {
       throw new Error("Invalid Configuration: 'image' required");
     }
@@ -59,38 +56,35 @@ export class HuiPictureCard extends LitElement implements LovelaceCard {
     }
 
     return html`
-      ${this.renderStyle()}
       <ha-card
         @ha-click="${this._handleTap}"
         @ha-hold="${this._handleHold}"
         .longPress="${longPress()}"
-        class="${
-          classMap({
-            clickable: Boolean(
-              this._config.tap_action || this._config.hold_action
-            ),
-          })
-        }"
+        class="${classMap({
+          clickable: Boolean(
+            this._config.tap_action || this._config.hold_action
+          ),
+        })}"
       >
-        <img src="${this._config.image}" />
+        <img src="${this.hass.hassUrl(this._config.image)}" />
       </ha-card>
     `;
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        ha-card {
-          overflow: hidden;
-        }
-        ha-card.clickable {
-          cursor: pointer;
-        }
-        img {
-          display: block;
-          width: 100%;
-        }
-      </style>
+  static get styles(): CSSResult {
+    return css`
+      ha-card {
+        overflow: hidden;
+      }
+
+      ha-card.clickable {
+        cursor: pointer;
+      }
+
+      img {
+        display: block;
+        width: 100%;
+      }
     `;
   }
 
@@ -108,5 +102,3 @@ declare global {
     "hui-picture-card": HuiPictureCard;
   }
 }
-
-customElements.define("hui-picture-card", HuiPictureCard);

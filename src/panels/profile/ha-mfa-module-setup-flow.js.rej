@@ -1,0 +1,11 @@
+diff a/src/panels/profile/ha-mfa-module-setup-flow.js b/src/panels/profile/ha-mfa-module-setup-flow.js	(rejected hunks)
+@@ -290,3 +290 @@ class HaMfaModuleSetupFlow extends LocalizeMixin(EventsMixin(PolymerElement)) {
+-      `component.auth.mfa_setup.${step.handler}.step.${
+-        step.step_id
+-      }.description`,
++      `component.auth.mfa_setup.${step.handler}.step.${step.step_id}.description`,
+@@ -306,3 +304 @@ class HaMfaModuleSetupFlow extends LocalizeMixin(EventsMixin(PolymerElement)) {
+-        `component.auth.mfa_setup.${step.handler}.step.${step.step_id}.data.${
+-          schema.name
+-        }`
++        `component.auth.mfa_setup.${step.handler}.step.${step.step_id}.data.${schema.name}`

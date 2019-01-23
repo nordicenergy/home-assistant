@@ -1,0 +1,6 @@
+diff a/src/panels/developer-tools/logs/show-dialog-system-log-detail.ts b/src/panels/developer-tools/logs/show-dialog-system-log-detail.ts	(rejected hunks)
+@@ -24 +24,3 @@ const registerDialog = (element: HTMLElement) =>
+-      import(/* webpackChunkName: "system-log-detail-dialog" */ "./dialog-system-log-detail"),
++      import(
++        /* webpackChunkName: "system-log-detail-dialog" */ "./dialog-system-log-detail"
++      ),

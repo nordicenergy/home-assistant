@@ -1,0 +1,6 @@
+diff a/src/panels/config/cloud/dialog-cloud-certificate/show-dialog-cloud-certificate.ts b/src/panels/config/cloud/dialog-cloud-certificate/show-dialog-cloud-certificate.ts	(rejected hunks)
+@@ -15 +15,3 @@ export const showCloudCertificateDialog = (
+-      import(/* webpackChunkName: "dialog-cloud-certificate" */ "./dialog-cloud-certificate"),
++      import(
++        /* webpackChunkName: "dialog-cloud-certificate" */ "./dialog-cloud-certificate"
++      ),

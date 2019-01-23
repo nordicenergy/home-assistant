@@ -1,11 +1,18 @@
-import { html, css, LitElement, TemplateResult, CSSResult } from "lit-element";
-import "@polymer/paper-button/paper-button";
+import {
+  html,
+  css,
+  LitElement,
+  TemplateResult,
+  CSSResult,
+  customElement,
+} from "lit-element";
+import "@material/mwc-button";
 
 import { HomeAssistant } from "../../../../types";
 import { LovelaceCardConfig } from "../../../../data/lovelace";
 import { getCardElementTag } from "../../common/get-card-element-tag";
 import { CardPickTarget } from "../types";
-import { hassLocalizeLitMixin } from "../../../../mixins/lit-localize-mixin";
+import { fireEvent } from "../../../../common/dom/fire_event";
 
 const cards = [
   { name: "Alarm panel", type: "alarm-panel" },
@@ -34,26 +41,28 @@ const cards = [
   { name: "Weather Forecast", type: "weather-forecast" },
 ];
 
-export class HuiCardPicker extends hassLocalizeLitMixin(LitElement) {
+@customElement("hui-card-picker")
+export class HuiCardPicker extends LitElement {
   public hass?: HomeAssistant;
+
   public cardPicked?: (cardConf: LovelaceCardConfig) => void;
 
   protected render(): TemplateResult | void {
     return html`
-      <h3>${this.localize("ui.panel.lovelace.editor.edit_card.pick_card")}</h3>
+      <h3>
+        ${this.hass!.localize("ui.panel.lovelace.editor.edit_card.pick_card")}
+      </h3>
       <div class="cards-container">
-        ${
-          cards.map((card) => {
-            return html`
-              <paper-button
-                raised
-                @click="${this._cardPicked}"
-                .type="${card.type}"
-                >${card.name}</paper-button
-              >
-            `;
-          })
-        }
+        ${cards.map((card) => {
+          return html`
+            <mwc-button @click="${this._cardPicked}" .type="${card.type}">
+              ${card.name}
+            </mwc-button>
+          `;
+        })}
+      </div>
+      <div class="cards-container">
+        <mwc-button @click="${this._manualPicked}">MANUAL CARD</mwc-button>
       </div>
     `;
   }
@@ -66,16 +75,24 @@ export class HuiCardPicker extends hassLocalizeLitMixin(LitElement) {
           flex-wrap: wrap;
           margin-bottom: 10px;
         }
-        .cards-container paper-button {
+        .cards-container mwc-button {
           flex: 1 0 25%;
+          margin: 4px;
         }
+
         @media all and (max-width: 450px), all and (max-height: 500px) {
-          .cards-container paper-button {
+          .cards-container mwc-button {
             flex: 1 0 33%;
           }
         }
       `,
     ];
+  }
+
+  private _manualPicked(): void {
+    fireEvent(this, "config-changed", {
+      config: { type: "" },
+    });
   }
 
   private _cardPicked(ev: Event): void {
@@ -90,7 +107,7 @@ export class HuiCardPicker extends hassLocalizeLitMixin(LitElement) {
       config = { ...config, ...cardConfig };
     }
 
-    this.cardPicked!(config);
+    fireEvent(this, "config-changed", { config });
   }
 }
 
@@ -99,5 +116,3 @@ declare global {
     "hui-card-picker": HuiCardPicker;
   }
 }
-
-customElements.define("hui-card-picker", HuiCardPicker);

@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/cards/hui-entities-card.ts b/src/panels/lovelace/cards/hui-entities-card.ts	(rejected hunks)
+@@ -30 +30,3 @@ class HuiEntitiesCard extends LitElement implements LovelaceCard {
+-    await import(/* webpackChunkName: "hui-entities-card-editor" */ "../editor/config-elements/hui-entities-card-editor");
++    await import(
++      /* webpackChunkName: "hui-entities-card-editor" */ "../editor/config-elements/hui-entities-card-editor"
++    );

@@ -1,25 +1,25 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
 } from "lit-element";
 import "@polymer/paper-input/paper-input";
 import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
 import "@polymer/paper-item/paper-item";
 import "@polymer/paper-listbox/paper-listbox";
 
+import "../../components/hui-theme-select-editor";
+import "../../../../components/entity/ha-entity-picker";
+
 import { struct } from "../../common/structs/struct";
 import { EntitiesEditorEvent, EditorTarget } from "../types";
-import { hassLocalizeLitMixin } from "../../../../mixins/lit-localize-mixin";
 import { HomeAssistant } from "../../../../types";
 import { LovelaceCardEditor } from "../../types";
 import { fireEvent } from "../../../../common/dom/fire_event";
-import { Config } from "../../cards/hui-sensor-card";
 import { configElementStyle } from "./config-elements-style";
-
-import "../../components/hui-theme-select-editor";
-import "../../../../components/entity/ha-entity-picker";
+import { SensorCardConfig } from "../../cards/types";
 
 const cardConfigStruct = struct({
   type: "string",
@@ -33,18 +33,16 @@ const cardConfigStruct = struct({
   hours_to_show: "number?",
 });
 
-export class HuiSensorCardEditor extends hassLocalizeLitMixin(LitElement)
+@customElement("hui-sensor-card-editor")
+export class HuiSensorCardEditor extends LitElement
   implements LovelaceCardEditor {
-  public hass?: HomeAssistant;
-  private _config?: Config;
+  @property() public hass?: HomeAssistant;
 
-  public setConfig(config: Config): void {
+  @property() private _config?: SensorCardConfig;
+
+  public setConfig(config: SensorCardConfig): void {
     config = cardConfigStruct(config);
     this._config = config;
-  }
-
-  static get properties(): PropertyDeclarations {
-    return { hass: {}, _config: {} };
   }
 
   get _entity(): string {
@@ -121,13 +119,11 @@ export class HuiSensorCardEditor extends hassLocalizeLitMixin(LitElement)
               slot="dropdown-content"
               .selected="${graphs.indexOf(this._graph)}"
             >
-              ${
-                graphs.map((graph) => {
-                  return html`
-                    <paper-item>${graph}</paper-item>
-                  `;
-                })
-              }
+              ${graphs.map((graph) => {
+                return html`
+                  <paper-item>${graph}</paper-item>
+                `;
+              })}
             </paper-listbox>
           </paper-dropdown-menu>
         </div>
@@ -197,5 +193,3 @@ declare global {
     "hui-sensor-card-editor": HuiSensorCardEditor;
   }
 }
-
-customElements.define("hui-sensor-card-editor", HuiSensorCardEditor);

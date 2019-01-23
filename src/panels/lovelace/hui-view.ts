@@ -6,6 +6,7 @@ import {
   TemplateResult,
 } from "lit-element";
 
+import "@polymer/paper-fab/paper-fab";
 import "../../components/entity/ha-state-label-badge";
 // This one is for types
 // tslint:disable-next-line
@@ -13,15 +14,17 @@ import { HaStateLabelBadge } from "../../components/entity/ha-state-label-badge"
 
 import applyThemesOnElement from "../../common/dom/apply_themes_on_element";
 
-import { hassLocalizeLitMixin } from "../../mixins/lit-localize-mixin";
 import { LovelaceViewConfig, LovelaceCardConfig } from "../../data/lovelace";
 import { HomeAssistant } from "../../types";
-
+import { classMap } from "lit-html/directives/class-map";
 import { Lovelace, LovelaceCard } from "./types";
 import { createCardElement } from "./common/create-card-element";
 import { computeCardSize } from "./common/compute-card-size";
 import { showEditCardDialog } from "./editor/card-editor/show-edit-card-dialog";
 import { HuiErrorCard } from "./cards/hui-error-card";
+
+import { computeRTL } from "../../common/util/compute_rtl";
+import { processConfigEntities } from "./common/process-config-entities";
 
 let editCodeLoaded = false;
 
@@ -43,7 +46,7 @@ const getColumnIndex = (columnEntityCount: number[], size: number) => {
   return minIndex;
 };
 
-export class HUIView extends hassLocalizeLitMixin(LitElement) {
+export class HUIView extends LitElement {
   public hass?: HomeAssistant;
   public lovelace?: Lovelace;
   public columns?: number;
@@ -55,8 +58,8 @@ export class HUIView extends hassLocalizeLitMixin(LitElement) {
     return {
       hass: {},
       lovelace: {},
-      columns: {},
-      index: {},
+      columns: { type: Number },
+      index: { type: Number },
       _cards: {},
       _badges: {},
     };
@@ -91,20 +94,21 @@ export class HUIView extends hassLocalizeLitMixin(LitElement) {
       ${this.renderStyles()}
       <div id="badges"></div>
       <div id="columns"></div>
-      ${
-        this.lovelace!.editMode
-          ? html`
-              <paper-fab
-                elevated="2"
-                icon="hass:plus"
-                title="${
-                  this.localize("ui.panel.lovelace.editor.edit_card.add")
-                }"
-                @click="${this._addCard}"
-              ></paper-fab>
-            `
-          : ""
-      }
+      ${this.lovelace!.editMode
+        ? html`
+            <paper-fab
+              elevated="2"
+              icon="hass:plus"
+              title="${this.hass!.localize(
+                "ui.panel.lovelace.editor.edit_card.add"
+              )}"
+              @click="${this._addCard}"
+              class="${classMap({
+                rtl: computeRTL(this.hass!),
+              })}"
+            ></paper-fab>
+          `
+        : ""}
     `;
   }
 
@@ -113,10 +117,11 @@ export class HUIView extends hassLocalizeLitMixin(LitElement) {
       <style>
         :host {
           display: block;
+          box-sizing: border-box;
           padding: 4px 4px 0;
           transform: translateZ(0);
           position: relative;
-          min-height: calc(100vh - 155px);
+          background: var(--lovelace-background);
         }
 
         #badges {
@@ -151,6 +156,12 @@ export class HUIView extends hassLocalizeLitMixin(LitElement) {
           z-index: 1;
         }
 
+        paper-fab.rtl {
+          float: left;
+          right: auto;
+          left: 16px;
+        }
+
         @media (max-width: 500px) {
           :host {
             padding-left: 0;
@@ -175,6 +186,7 @@ export class HUIView extends hassLocalizeLitMixin(LitElement) {
   protected updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
 
+    const hass = this.hass!;
     const lovelace = this.lovelace!;
 
     if (lovelace.editMode && !editCodeLoaded) {
@@ -182,10 +194,13 @@ export class HUIView extends hassLocalizeLitMixin(LitElement) {
       import(/* webpackChunkName: "hui-view-editable" */ "./hui-view-editable");
     }
 
+    const hassChanged = changedProperties.has("hass");
     let editModeChanged = false;
     let configChanged = false;
 
-    if (changedProperties.has("lovelace")) {
+    if (changedProperties.has("index")) {
+      configChanged = true;
+    } else if (changedProperties.has("lovelace")) {
       const oldLovelace = changedProperties.get("lovelace") as Lovelace;
       editModeChanged =
         !oldLovelace || lovelace.editMode !== oldLovelace.editMode;
@@ -194,20 +209,37 @@ export class HUIView extends hassLocalizeLitMixin(LitElement) {
 
     if (configChanged) {
       this._createBadges(lovelace.config.views[this.index!]);
-    } else if (changedProperties.has("hass")) {
+    } else if (hassChanged) {
       this._badges.forEach((badge) => {
         const { element, entityId } = badge;
-        element.hass = this.hass!;
-        element.state = this.hass!.states[entityId];
+        element.hass = hass;
+        element.state = hass.states[entityId];
       });
     }
 
     if (configChanged || editModeChanged || changedProperties.has("columns")) {
       this._createCards(lovelace.config.views[this.index!]);
-    } else if (changedProperties.has("hass")) {
+    } else if (hassChanged) {
       this._cards.forEach((element) => {
         element.hass = this.hass;
       });
+    }
+
+    const oldHass = changedProperties.get("hass") as this["hass"] | undefined;
+
+    if (
+      configChanged ||
+      editModeChanged ||
+      (hassChanged &&
+        oldHass &&
+        (hass.themes !== oldHass.themes ||
+          hass.selectedTheme !== oldHass.selectedTheme))
+    ) {
+      applyThemesOnElement(
+        this,
+        hass.themes,
+        lovelace.config.views[this.index!].theme
+      );
     }
   }
 
@@ -232,10 +264,16 @@ export class HUIView extends hassLocalizeLitMixin(LitElement) {
     }
 
     const elements: HUIView["_badges"] = [];
-    for (const entityId of config.badges) {
+    // It's possible that a null value was stored as a badge entry
+    const badges = processConfigEntities(config.badges.filter(Boolean));
+    for (const badge of badges) {
       const element = document.createElement("ha-state-label-badge");
+      const entityId = badge.entity;
       element.hass = this.hass;
       element.state = this.hass!.states[entityId];
+      element.name = badge.name;
+      element.icon = badge.icon;
+      element.image = badge.image;
       elements.push({ element, entityId });
       root.appendChild(element);
     }
@@ -300,10 +338,6 @@ export class HUIView extends hassLocalizeLitMixin(LitElement) {
     });
 
     this._cards = elements;
-
-    if ("theme" in config) {
-      applyThemesOnElement(root, this.hass!.themes, config.theme);
-    }
   }
 
   private _rebuildCard(

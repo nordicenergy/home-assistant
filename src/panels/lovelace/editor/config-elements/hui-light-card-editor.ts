@@ -1,22 +1,22 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
 } from "lit-element";
 import "@polymer/paper-input/paper-input";
 
+import "../../components/hui-theme-select-editor";
+import "../../components/hui-entity-editor";
+
 import { struct } from "../../common/structs/struct";
 import { EntitiesEditorEvent, EditorTarget } from "../types";
-import { hassLocalizeLitMixin } from "../../../../mixins/lit-localize-mixin";
 import { HomeAssistant } from "../../../../types";
 import { LovelaceCardEditor } from "../../types";
 import { fireEvent } from "../../../../common/dom/fire_event";
-import { Config } from "../../cards/hui-light-card";
 import { configElementStyle } from "./config-elements-style";
-
-import "../../components/hui-theme-select-editor";
-import "../../components/hui-entity-editor";
+import { LightCardConfig } from "../../cards/types";
 
 const cardConfigStruct = struct({
   type: "string",
@@ -25,18 +25,16 @@ const cardConfigStruct = struct({
   theme: "string?",
 });
 
-export class HuiLightCardEditor extends hassLocalizeLitMixin(LitElement)
+@customElement("hui-light-card-editor")
+export class HuiLightCardEditor extends LitElement
   implements LovelaceCardEditor {
-  public hass?: HomeAssistant;
-  private _config?: Config;
+  @property() public hass?: HomeAssistant;
 
-  public setConfig(config: Config): void {
+  @property() private _config?: LightCardConfig;
+
+  public setConfig(config: LightCardConfig): void {
     config = cardConfigStruct(config);
     this._config = config;
-  }
-
-  static get properties(): PropertyDeclarations {
-    return { hass: {}, _config: {}, _configEntities: {} };
   }
 
   get _name(): string {
@@ -113,5 +111,3 @@ declare global {
     "hui-light-card-editor": HuiLightCardEditor;
   }
 }
-
-customElements.define("hui-light-card-editor", HuiLightCardEditor);

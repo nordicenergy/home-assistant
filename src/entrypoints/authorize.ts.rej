@@ -1,0 +1,6 @@
+diff a/src/entrypoints/authorize.ts b/src/entrypoints/authorize.ts	(rejected hunks)
+@@ -13 +13,3 @@ setTimeout(
+-    import(/* webpackChunkName: "polyfill-web-animations-next" */ "web-animations-js/web-animations-next-lite.min"),
++    import(
++      /* webpackChunkName: "polyfill-web-animations-next" */ "web-animations-js/web-animations-next-lite.min"
++    ),

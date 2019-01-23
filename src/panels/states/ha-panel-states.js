@@ -22,7 +22,7 @@ import computeStateName from "../../common/entity/compute_state_name";
 import computeStateDomain from "../../common/entity/compute_state_domain";
 import computeLocationName from "../../common/config/location_name";
 import NavigateMixin from "../../mixins/navigate-mixin";
-import EventsMixin from "../../mixins/events-mixin";
+import { EventsMixin } from "../../mixins/events-mixin";
 
 const DEFAULT_VIEW_ENTITY_ID = "group.default_view";
 const ALWAYS_SHOW_DOMAIN = ["persistent_notification", "configurator"];
@@ -66,8 +66,8 @@ class PartialCards extends EventsMixin(NavigateMixin(PolymerElement)) {
         <app-header effects="waterfall" condenses="" fixed="" slot="header">
           <app-toolbar>
             <ha-menu-button
+              hass="[[hass]]"
               narrow="[[narrow]]"
-              show-menu="[[showMenu]]"
             ></ha-menu-button>
             <div main-title="">
               [[computeTitle(views, defaultView, locationName)]]
@@ -160,10 +160,6 @@ class PartialCards extends EventsMixin(NavigateMixin(PolymerElement)) {
         value: false,
       },
 
-      showMenu: {
-        type: Boolean,
-      },
-
       panelVisible: {
         type: Boolean,
         value: false,
@@ -215,7 +211,7 @@ class PartialCards extends EventsMixin(NavigateMixin(PolymerElement)) {
   }
 
   static get observers() {
-    return ["_updateColumns(narrow, showMenu)"];
+    return ["_updateColumns(narrow, hass.dockedSidebar)"];
   }
 
   ready() {
@@ -239,7 +235,10 @@ class PartialCards extends EventsMixin(NavigateMixin(PolymerElement)) {
   _updateColumns() {
     const matchColumns = this.mqls.reduce((cols, mql) => cols + mql.matches, 0);
     // Do -1 column if the menu is docked and open
-    this._columns = Math.max(1, matchColumns - (!this.narrow && this.showMenu));
+    this._columns = Math.max(
+      1,
+      matchColumns - (!this.narrow && this.hass.dockedSidebar === "docked")
+    );
   }
 
   areTabsHidden(views, showTabs) {

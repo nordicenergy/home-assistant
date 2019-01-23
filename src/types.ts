@@ -8,12 +8,36 @@ import {
   HassEntityAttributeBase,
   HassServices,
 } from "home-assistant-js-websocket";
+import { LocalizeFunc } from "./common/translations/localize";
+import { ExternalMessaging } from "./external_app/external_messaging";
 
 declare global {
   var __DEV__: boolean;
   var __DEMO__: boolean;
   var __BUILD__: "latest" | "es5";
   var __VERSION__: string;
+  var __STATIC_PATH__: string;
+
+  interface Window {
+    // Custom panel entry point url
+    customPanelJS: string;
+    ShadyCSS: {
+      nativeCss: boolean;
+      nativeShadow: boolean;
+      prepareTemplate(templateElement, elementName, elementExtension);
+      styleElement(element);
+      styleSubtree(element, overrideProperties);
+      styleDocument(overrideProperties);
+      getComputedStyleValue(element, propertyName);
+    };
+  }
+  // for fire event
+  interface HASSDomEvents {
+    "value-changed": {
+      value: unknown;
+    };
+    change: undefined;
+  }
 }
 
 export interface WebhookError {
@@ -32,9 +56,10 @@ export interface MFAModule {
   enabled: boolean;
 }
 
-export interface User {
+export interface CurrentUser {
   id: string;
   is_owner: boolean;
+  is_admin: boolean;
   name: string;
   credentials: Credential[];
   mfa_modules: MFAModule[];
@@ -52,22 +77,29 @@ export interface Themes {
   themes: { [key: string]: Theme };
 }
 
-export interface Panel {
+export interface PanelInfo<T = {} | null> {
   component_name: string;
-  config: { [key: string]: any } | null;
+  config: T;
   icon: string | null;
   title: string | null;
   url_path: string;
 }
 
 export interface Panels {
-  [name: string]: Panel;
+  [name: string]: PanelInfo;
 }
 
 export interface Translation {
   nativeName: string;
   isRTL: boolean;
   fingerprints: { [fragment: string]: string };
+}
+
+export interface TranslationMetadata {
+  fragments: string[];
+  translations: {
+    [lang: string]: Translation;
+  };
 }
 
 export interface Notification {
@@ -78,8 +110,12 @@ export interface Notification {
   created_at: string;
 }
 
+export interface Resources {
+  [language: string]: { [key: string]: string };
+}
+
 export interface HomeAssistant {
-  auth: Auth;
+  auth: Auth & { external?: ExternalMessaging };
   connection: Connection;
   connected: boolean;
   states: HassEntities;
@@ -89,58 +125,38 @@ export interface HomeAssistant {
   selectedTheme?: string | null;
   panels: Panels;
   panelUrl: string;
+
+  // i18n
+  // current effective language, in that order:
+  //   - backend saved user selected lanugage
+  //   - language in local appstorage
+  //   - browser language
+  //   - english (en)
   language: string;
-  resources: { [key: string]: any };
-  translationMetadata: {
-    fragments: string[];
-    translations: {
-      [lang: string]: Translation;
-    };
-  };
-  dockedSidebar: boolean;
-  moreInfoEntityId: string;
-  user: User;
-  callService: (
+  // local stored language, keep that name for backward compability
+  selectedLanguage: string | null;
+  resources: Resources;
+  localize: LocalizeFunc;
+  translationMetadata: TranslationMetadata;
+
+  dockedSidebar: "docked" | "always_hidden" | "auto";
+  moreInfoEntityId: string | null;
+  user?: CurrentUser;
+  hassUrl(path?): string;
+  callService(
     domain: string,
     service: string,
     serviceData?: { [key: string]: any }
-  ) => Promise<void>;
-  callApi: <T>(
+  ): Promise<void>;
+  callApi<T>(
     method: "GET" | "POST" | "PUT" | "DELETE",
     path: string,
     parameters?: { [key: string]: any }
-  ) => Promise<T>;
-  fetchWithAuth: (
-    path: string,
-    init?: { [key: string]: any }
-  ) => Promise<Response>;
-  sendWS: (msg: MessageBase) => Promise<void>;
-  callWS: <T>(msg: MessageBase) => Promise<T>;
+  ): Promise<T>;
+  fetchWithAuth(path: string, init?: { [key: string]: any }): Promise<Response>;
+  sendWS(msg: MessageBase): void;
+  callWS<T>(msg: MessageBase): Promise<T>;
 }
-
-export type ClimateEntity = HassEntityBase & {
-  attributes: HassEntityAttributeBase & {
-    current_temperature: number;
-    min_temp: number;
-    max_temp: number;
-    temperature: number;
-    target_temp_step?: number;
-    target_temp_high?: number;
-    target_temp_low?: number;
-    target_humidity?: number;
-    target_humidity_low?: number;
-    target_humidity_high?: number;
-    fan_mode?: string;
-    fan_list?: string[];
-    operation_mode?: string;
-    operation_list?: string[];
-    hold_mode?: string;
-    swing_mode?: string;
-    swing_list?: string[];
-    away_mode?: "on" | "off";
-    aux_heat?: "on" | "off";
-  };
-};
 
 export type LightEntity = HassEntityBase & {
   attributes: HassEntityAttributeBase & {
@@ -162,13 +178,20 @@ export type GroupEntity = HassEntityBase & {
   };
 };
 
-export interface PanelInfo<T = unknown> {
-  component_name: string;
-  icon?: string;
-  title?: string;
-  url_path: string;
-  config: T;
-}
+export type CameraEntity = HassEntityBase & {
+  attributes: HassEntityAttributeBase & {
+    model_name: string;
+    access_token: string;
+    brand: string;
+    motion_detection: boolean;
+  };
+};
+
+export type InputSelectEntity = HassEntityBase & {
+  attributes: HassEntityAttributeBase & {
+    options: string[];
+  };
+};
 
 export interface Route {
   prefix: string;
@@ -178,7 +201,11 @@ export interface Route {
 export interface PanelElement extends HTMLElement {
   hass?: HomeAssistant;
   narrow?: boolean;
-  showMenu?: boolean;
   route?: Route | null;
-  panel?: Panel;
+  panel?: PanelInfo;
+}
+
+export interface LocalizeMixin {
+  hass?: HomeAssistant;
+  localize: LocalizeFunc;
 }

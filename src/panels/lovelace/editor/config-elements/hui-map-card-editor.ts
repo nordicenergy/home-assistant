@@ -1,23 +1,27 @@
 import {
   html,
+  css,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
+  CSSResult,
 } from "lit-element";
 import "@polymer/paper-input/paper-input";
 
+import "../../components/hui-entity-editor";
+import "../../components/hui-input-list-editor";
+
 import { struct } from "../../common/structs/struct";
 import { EntitiesEditorEvent, EditorTarget } from "../types";
-import { hassLocalizeLitMixin } from "../../../../mixins/lit-localize-mixin";
 import { HomeAssistant } from "../../../../types";
 import { LovelaceCardEditor } from "../../types";
 import { fireEvent } from "../../../../common/dom/fire_event";
-import { Config } from "../../cards/hui-alarm-panel-card";
 import { configElementStyle } from "./config-elements-style";
 import { processEditorEntities } from "../process-editor-entities";
 import { EntityConfig } from "../../entity-rows/types";
-
-import "../../components/hui-entity-editor";
+import { PolymerChangedEvent } from "../../../../polymer-types";
+import { MapCardConfig } from "../../cards/types";
 
 const entitiesConfigStruct = struct.union([
   {
@@ -33,23 +37,23 @@ const cardConfigStruct = struct({
   title: "string?",
   aspect_ratio: "string?",
   default_zoom: "number?",
+  dark_mode: "boolean?",
   entities: [entitiesConfigStruct],
+  geo_location_sources: "array?",
 });
 
-export class HuiMapCardEditor extends hassLocalizeLitMixin(LitElement)
-  implements LovelaceCardEditor {
-  public hass?: HomeAssistant;
-  private _config?: Config;
-  private _configEntities?: EntityConfig[];
+@customElement("hui-map-card-editor")
+export class HuiMapCardEditor extends LitElement implements LovelaceCardEditor {
+  @property() public hass?: HomeAssistant;
 
-  public setConfig(config: Config): void {
+  @property() private _config?: MapCardConfig;
+
+  @property() private _configEntities?: EntityConfig[];
+
+  public setConfig(config: MapCardConfig): void {
     config = cardConfigStruct(config);
     this._config = config;
     this._configEntities = processEditorEntities(config.entities);
-  }
-
-  static get properties(): PropertyDeclarations {
-    return { hass: {}, _config: {}, _configEntities: {} };
   }
 
   get _title(): string {
@@ -64,8 +68,12 @@ export class HuiMapCardEditor extends hassLocalizeLitMixin(LitElement)
     return this._config!.default_zoom || NaN;
   }
 
-  get _entities(): string[] {
-    return this._config!.entities || [];
+  get _geo_location_sources(): string[] {
+    return this._config!.geo_location_sources || [];
+  }
+
+  get _dark_mode(): boolean {
+    return this._config!.dark_mode || false;
   }
 
   protected render(): TemplateResult | void {
@@ -97,44 +105,81 @@ export class HuiMapCardEditor extends hassLocalizeLitMixin(LitElement)
             @value-changed="${this._valueChanged}"
           ></paper-input>
         </div>
+        <paper-toggle-button
+          ?checked="${this._dark_mode !== false}"
+          .configValue="${"dark_mode"}"
+          @change="${this._valueChanged}"
+          >Dark Mode?</paper-toggle-button
+        >
         <hui-entity-editor
           .hass="${this.hass}"
           .entities="${this._configEntities}"
-          @entities-changed="${this._valueChanged}"
+          @entities-changed="${this._entitiesValueChanged}"
         ></hui-entity-editor>
+        <h3>Geolocation Sources</h3>
+        <div class="geo_location_sources">
+          <hui-input-list-editor
+            inputLabel="Source"
+            .hass="${this.hass}"
+            .value="${this._geo_location_sources}"
+            .configValue="${"geo_location_sources"}"
+            @value-changed="${this._valueChanged}"
+          ></hui-input-list-editor>
+        </div>
       </div>
     `;
   }
 
-  private _valueChanged(ev: EntitiesEditorEvent): void {
+  private _entitiesValueChanged(ev: EntitiesEditorEvent): void {
     if (!this._config || !this.hass) {
-      return;
-    }
-    const target = ev.target! as EditorTarget;
-    if (target.configValue && this[`_${target.configValue}`] === target.value) {
       return;
     }
     if (ev.detail && ev.detail.entities) {
       this._config.entities = ev.detail.entities;
       this._configEntities = processEditorEntities(this._config.entities);
-    } else if (target.configValue) {
+      fireEvent(this, "config-changed", { config: this._config });
+    }
+  }
+
+  private _valueChanged(ev: PolymerChangedEvent<any>): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target! as EditorTarget;
+    if (
+      target.configValue &&
+      ev.detail &&
+      this[`_${target.configValue}`] === ev.detail.value
+    ) {
+      return;
+    }
+    if (target.configValue && ev.detail) {
       if (
-        target.value === "" ||
-        (target.type === "number" && isNaN(Number(target.value)))
+        ev.detail.value === "" ||
+        (target.type === "number" && isNaN(Number(ev.detail.value)))
       ) {
         delete this._config[target.configValue!];
       } else {
-        let value: any = target.value;
+        let value: any = ev.detail.value;
         if (target.type === "number") {
           value = Number(value);
         }
         this._config = {
           ...this._config,
-          [target.configValue!]: value,
+          [target.configValue]:
+            target.checked !== undefined ? target.checked : value,
         };
       }
     }
     fireEvent(this, "config-changed", { config: this._config });
+  }
+
+  static get styles(): CSSResult {
+    return css`
+      .geo_location_sources {
+        padding-left: 20px;
+      }
+    `;
   }
 }
 
@@ -143,5 +188,3 @@ declare global {
     "hui-map-card-editor": HuiMapCardEditor;
   }
 }
-
-customElements.define("hui-map-card-editor", HuiMapCardEditor);

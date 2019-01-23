@@ -1,38 +1,32 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
+  css,
+  CSSResult,
 } from "lit-element";
 
 import "../../../components/ha-card";
 
 import { LovelaceCard, LovelaceCardEditor } from "../types";
-import { LovelaceCardConfig } from "../../../data/lovelace";
 import { styleMap } from "lit-html/directives/style-map";
+import { IframeCardConfig } from "./types";
 
-export interface Config extends LovelaceCardConfig {
-  aspect_ratio?: string;
-  title?: string;
-  url: string;
-}
-
+@customElement("hui-iframe-card")
 export class HuiIframeCard extends LitElement implements LovelaceCard {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import(/* webpackChunkName: "hui-iframe-card-editor" */ "../editor/config-elements/hui-iframe-card-editor");
+    await import(
+      /* webpackChunkName: "hui-iframe-card-editor" */ "../editor/config-elements/hui-iframe-card-editor"
+    );
     return document.createElement("hui-iframe-card-editor");
   }
   public static getStubConfig(): object {
     return { url: "https://www.home-assistant.io", aspect_ratio: "50%" };
   }
 
-  protected _config?: Config;
-
-  static get properties(): PropertyDeclarations {
-    return {
-      _config: {},
-    };
-  }
+  @property() protected _config?: IframeCardConfig;
 
   public getCardSize(): number {
     if (!this._config) {
@@ -44,7 +38,7 @@ export class HuiIframeCard extends LitElement implements LovelaceCard {
     return 1 + aspectRatio / 25;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: IframeCardConfig): void {
     if (!config.url) {
       throw new Error("URL required");
     }
@@ -60,15 +54,12 @@ export class HuiIframeCard extends LitElement implements LovelaceCard {
     const aspectRatio = this._config.aspect_ratio || "50%";
 
     return html`
-      ${this.renderStyle()}
       <ha-card .header="${this._config.title}">
         <div
           id="root"
-          style="${
-            styleMap({
-              "padding-top": aspectRatio,
-            })
-          }"
+          style="${styleMap({
+            "padding-top": aspectRatio,
+          })}"
         >
           <iframe src="${this._config.url}"></iframe>
         </div>
@@ -76,25 +67,25 @@ export class HuiIframeCard extends LitElement implements LovelaceCard {
     `;
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        ha-card {
-          overflow: hidden;
-        }
-        #root {
-          width: 100%;
-          position: relative;
-        }
-        iframe {
-          position: absolute;
-          border: none;
-          width: 100%;
-          height: 100%;
-          top: 0;
-          left: 0;
-        }
-      </style>
+  static get styles(): CSSResult {
+    return css`
+      ha-card {
+        overflow: hidden;
+      }
+
+      #root {
+        width: 100%;
+        position: relative;
+      }
+
+      iframe {
+        position: absolute;
+        border: none;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+      }
     `;
   }
 }
@@ -104,5 +95,3 @@ declare global {
     "hui-iframe-card": HuiIframeCard;
   }
 }
-
-customElements.define("hui-iframe-card", HuiIframeCard);

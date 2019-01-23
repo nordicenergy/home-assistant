@@ -18,6 +18,7 @@ import "./ha-logbook";
 
 import formatDate from "../../common/datetime/format_date";
 import LocalizeMixin from "../../mixins/localize-mixin";
+import { computeRTL } from "../../common/util/compute_rtl";
 
 /*
  * @appliesMixin LocalizeMixin
@@ -52,6 +53,13 @@ class HaPanelLogbook extends LocalizeMixin(PolymerElement) {
         paper-dropdown-menu {
           max-width: 100px;
           margin-right: 16px;
+          --paper-input-container-label-floating: {
+            padding-bottom: 10px;
+          }
+        }
+
+        :host([rtl]) paper-dropdown-menu {
+          text-align: right;
         }
 
         paper-item {
@@ -82,8 +90,8 @@ class HaPanelLogbook extends LocalizeMixin(PolymerElement) {
         <app-header slot="header" fixed>
           <app-toolbar>
             <ha-menu-button
+              hass="[[hass]]"
               narrow="[[narrow]]"
-              show-menu="[[showMenu]]"
             ></ha-menu-button>
             <div main-title>[[localize('panel.logbook')]]</div>
             <paper-icon-button
@@ -152,19 +160,8 @@ class HaPanelLogbook extends LocalizeMixin(PolymerElement) {
 
   static get properties() {
     return {
-      hass: {
-        type: Object,
-      },
-
-      narrow: {
-        type: Boolean,
-        value: false,
-      },
-
-      showMenu: {
-        type: Boolean,
-        value: false,
-      },
+      hass: Object,
+      narrow: Boolean,
 
       // ISO8601 formatted date string
       _currentDate: {
@@ -205,6 +202,12 @@ class HaPanelLogbook extends LocalizeMixin(PolymerElement) {
       datePicker: {
         type: Object,
       },
+
+      rtl: {
+        type: Boolean,
+        reflectToAttribute: true,
+        computed: "_computeRTL(hass)",
+      },
     };
   }
 
@@ -241,6 +244,10 @@ class HaPanelLogbook extends LocalizeMixin(PolymerElement) {
 
   refreshLogbook() {
     this.shadowRoot.querySelector("ha-logbook-data").refreshLogbook();
+  }
+
+  _computeRTL(hass) {
+    return computeRTL(hass);
   }
 }
 

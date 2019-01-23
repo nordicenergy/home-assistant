@@ -1,0 +1,26 @@
+diff a/src/data/device_automation.ts b/src/data/device_automation.ts	(rejected hunks)
+@@ -75,3 +75 @@ export const localizeDeviceAutomationAction = (
+-      `component.${action.domain}.device_automation.action_subtype.${
+-        action.subtype
+-      }`
++      `component.${action.domain}.device_automation.action_subtype.${action.subtype}`
+@@ -90,3 +88 @@ export const localizeDeviceAutomationCondition = (
+-    `component.${condition.domain}.device_automation.condition_type.${
+-      condition.type
+-    }`,
++    `component.${condition.domain}.device_automation.condition_type.${condition.type}`,
+@@ -97,3 +93 @@ export const localizeDeviceAutomationCondition = (
+-      `component.${condition.domain}.device_automation.condition_subtype.${
+-        condition.subtype
+-      }`
++      `component.${condition.domain}.device_automation.condition_subtype.${condition.subtype}`
+@@ -110,3 +104 @@ export const localizeDeviceAutomationTrigger = (
+-    `component.${trigger.domain}.device_automation.trigger_type.${
+-      trigger.type
+-    }`,
++    `component.${trigger.domain}.device_automation.trigger_type.${trigger.type}`,
+@@ -117,3 +109 @@ export const localizeDeviceAutomationTrigger = (
+-      `component.${trigger.domain}.device_automation.trigger_subtype.${
+-        trigger.subtype
+-      }`
++      `component.${trigger.domain}.device_automation.trigger_subtype.${trigger.subtype}`

@@ -1,8 +1,9 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
 } from "lit-element";
 import "@polymer/paper-input/paper-textarea";
 import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
@@ -31,15 +32,15 @@ declare global {
   }
 }
 
+@customElement("hui-action-editor")
 export class HuiActionEditor extends LitElement {
-  public config?: ActionConfig;
-  public label?: string;
-  public actions?: string[];
-  protected hass?: HomeAssistant;
+  @property() public config?: ActionConfig;
 
-  static get properties(): PropertyDeclarations {
-    return { hass: {}, config: {}, label: {}, actions: {} };
-  }
+  @property() public label?: string;
+
+  @property() public actions?: string[];
+
+  @property() protected hass?: HomeAssistant;
 
   get _action(): string {
     return this.config!.action || "";
@@ -69,40 +70,34 @@ export class HuiActionEditor extends LitElement {
           slot="dropdown-content"
           .selected="${this.actions.indexOf(this._action)}"
         >
-          ${
-            this.actions.map((action) => {
-              return html`
-                <paper-item>${action}</paper-item>
-              `;
-            })
-          }
+          ${this.actions.map((action) => {
+            return html`
+              <paper-item>${action}</paper-item>
+            `;
+          })}
         </paper-listbox>
       </paper-dropdown-menu>
-      ${
-        this._action === "navigate"
-          ? html`
-              <paper-input
-                label="Navigation Path"
-                .value="${this._navigation_path}"
-                .configValue="${"navigation_path"}"
-                @value-changed="${this._valueChanged}"
-              ></paper-input>
-            `
-          : ""
-      }
-      ${
-        this.config && this.config.action === "call-service"
-          ? html`
-              <ha-service-picker
-                .hass="${this.hass}"
-                .value="${this._service}"
-                .configValue="${"service"}"
-                @value-changed="${this._valueChanged}"
-              ></ha-service-picker>
-              <h3>Toggle Editor to input Service Data</h3>
-            `
-          : ""
-      }
+      ${this._action === "navigate"
+        ? html`
+            <paper-input
+              label="Navigation Path"
+              .value="${this._navigation_path}"
+              .configValue="${"navigation_path"}"
+              @value-changed="${this._valueChanged}"
+            ></paper-input>
+          `
+        : ""}
+      ${this.config && this.config.action === "call-service"
+        ? html`
+            <ha-service-picker
+              .hass="${this.hass}"
+              .value="${this._service}"
+              .configValue="${"service"}"
+              @value-changed="${this._valueChanged}"
+            ></ha-service-picker>
+            <h3>Toggle Editor to input Service Data</h3>
+          `
+        : ""}
     `;
   }
 
@@ -132,5 +127,3 @@ declare global {
     "hui-action-editor": HuiActionEditor;
   }
 }
-
-customElements.define("hui-action-editor", HuiActionEditor);

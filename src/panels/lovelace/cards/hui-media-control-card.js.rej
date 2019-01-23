@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/cards/hui-media-control-card.js b/src/panels/lovelace/cards/hui-media-control-card.js	(rejected hunks)
+@@ -7 +7,3 @@ class HuiMediaControlCard extends LegacyWrapperCard {
+-    await import(/* webpackChunkName: "hui-media-control-card-editor" */ "../editor/config-elements/hui-media-control-card-editor");
++    await import(
++      /* webpackChunkName: "hui-media-control-card-editor" */ "../editor/config-elements/hui-media-control-card-editor"
++    );

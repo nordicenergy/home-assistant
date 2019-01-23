@@ -1,0 +1,6 @@
+diff a/src/dialogs/device-registry-detail/show-dialog-device-registry-detail.ts b/src/dialogs/device-registry-detail/show-dialog-device-registry-detail.ts	(rejected hunks)
+@@ -15 +15,3 @@ export const loadDeviceRegistryDetailDialog = () =>
+-  import(/* webpackChunkName: "device-registry-detail-dialog" */ "./dialog-device-registry-detail");
++  import(
++    /* webpackChunkName: "device-registry-detail-dialog" */ "./dialog-device-registry-detail"
++  );

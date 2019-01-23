@@ -1,25 +1,27 @@
-import "@polymer/iron-flex-layout/iron-flex-layout-classes";
+import "../../../components/buttons/ha-call-service-button";
+import "../../../components/ha-service-description";
+import "../../../components/ha-card";
+import "../ha-config-section";
+import "@material/mwc-button";
+import "@polymer/paper-icon-button/paper-icon-button";
+
 import {
+  css,
+  CSSResult,
   html,
   LitElement,
   PropertyDeclarations,
   TemplateResult,
 } from "lit-element";
-import "@polymer/paper-button/paper-button";
-import "@polymer/paper-card/paper-card";
-import "@polymer/paper-icon-button/paper-icon-button";
-import "../../../components/buttons/ha-call-service-button";
-import "../../../components/ha-service-description";
-import "../../../resources/ha-style";
+
+import { navigate } from "../../../common/navigate";
+import { haStyle } from "../../../resources/styles";
 import { HomeAssistant } from "../../../types";
-import "../ha-config-section";
 
 export class ZHANetwork extends LitElement {
   public hass?: HomeAssistant;
   public isWide?: boolean;
   private _showHelp: boolean;
-  private _haStyle?: DocumentFragment;
-  private _ironFlex?: DocumentFragment;
 
   constructor() {
     super();
@@ -31,38 +33,40 @@ export class ZHANetwork extends LitElement {
       hass: {},
       isWide: {},
       _showHelp: {},
+      _joinParams: {},
     };
   }
 
   protected render(): TemplateResult | void {
     return html`
-      ${this.renderStyle()}
       <ha-config-section .isWide="${this.isWide}">
         <div style="position: relative" slot="header">
-            <span>Network Management</span>
-            <paper-icon-button class="toggle-help-icon" @click="${
-              this._onHelpTap
-            }" icon="hass:help-circle"></paper-icon-button>
+          <span>Network Management</span>
+          <paper-icon-button
+            class="toggle-help-icon"
+            @click="${this._onHelpTap}"
+            icon="hass:help-circle"
+          ></paper-icon-button>
         </div>
         <span slot="introduction">Commands that affect entire network</span>
 
-        <paper-card class="content">
-            <div class="card-actions">
-            <ha-call-service-button .hass="${
-              this.hass
-            }" domain="zha" service="permit">Permit</ha-call-service-button>
-            ${
-              this._showHelp
-                ? html`
-                    <ha-service-description
-                      .hass="${this.hass}"
-                      domain="zha"
-                      service="permit"
-                    />
-                  `
-                : ""
-            }
-        </paper-card>
+        <ha-card class="content">
+          <div class="card-actions">
+            <mwc-button @click=${this._onAddDevicesClick}>
+              Add Devices
+            </mwc-button>
+            ${this._showHelp
+              ? html`
+                  <ha-service-description
+                    .hass="${this.hass}"
+                    domain="zha"
+                    service="permit"
+                    class="help-text2"
+                  />
+                `
+              : ""}
+          </div>
+        </ha-card>
       </ha-config-section>
     `;
   }
@@ -71,30 +75,19 @@ export class ZHANetwork extends LitElement {
     this._showHelp = !this._showHelp;
   }
 
-  private renderStyle(): TemplateResult {
-    if (!this._haStyle) {
-      this._haStyle = document.importNode(
-        (document.getElementById("ha-style")!
-          .children[0] as HTMLTemplateElement).content,
-        true
-      );
-    }
-    if (!this._ironFlex) {
-      this._ironFlex = document.importNode(
-        (document.getElementById("iron-flex")!
-          .children[0] as HTMLTemplateElement).content,
-        true
-      );
-    }
-    return html`
-      ${this._ironFlex} ${this._haStyle}
-      <style>
+  private _onAddDevicesClick() {
+    navigate(this, "add");
+  }
+
+  static get styles(): CSSResult[] {
+    return [
+      haStyle,
+      css`
         .content {
           margin-top: 24px;
         }
 
-        paper-card {
-          display: block;
+        ha-card {
           margin: 0 auto;
           max-width: 600px;
         }
@@ -118,8 +111,13 @@ export class ZHANetwork extends LitElement {
         [hidden] {
           display: none;
         }
-      </style>
-    `;
+
+        .help-text2 {
+          color: grey;
+          padding: 16px;
+        }
+      `,
+    ];
   }
 }
 

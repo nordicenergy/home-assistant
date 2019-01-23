@@ -1,0 +1,26 @@
+diff a/src/components/ha-climate-state.js b/src/components/ha-climate-state.js	(rejected hunks)
+@@ -75,3 +75 @@ class HaClimateState extends LocalizeMixin(PolymerElement) {
+-      return `${stateObj.attributes.current_temperature} ${
+-        hass.config.unit_system.temperature
+-      }`;
++      return `${stateObj.attributes.current_temperature} ${hass.config.unit_system.temperature}`;
+@@ -92,3 +90 @@ class HaClimateState extends LocalizeMixin(PolymerElement) {
+-      return `${stateObj.attributes.target_temp_low}-${
+-        stateObj.attributes.target_temp_high
+-      } ${hass.config.unit_system.temperature}`;
++      return `${stateObj.attributes.target_temp_low}-${stateObj.attributes.target_temp_high} ${hass.config.unit_system.temperature}`;
+@@ -97,3 +93 @@ class HaClimateState extends LocalizeMixin(PolymerElement) {
+-      return `${stateObj.attributes.temperature} ${
+-        hass.config.unit_system.temperature
+-      }`;
++      return `${stateObj.attributes.temperature} ${hass.config.unit_system.temperature}`;
+@@ -105,3 +99 @@ class HaClimateState extends LocalizeMixin(PolymerElement) {
+-      return `${stateObj.attributes.target_humidity_low}-${
+-        stateObj.attributes.target_humidity_high
+-      }%`;
++      return `${stateObj.attributes.target_humidity_low}-${stateObj.attributes.target_humidity_high}%`;
+@@ -124,3 +116 @@ class HaClimateState extends LocalizeMixin(PolymerElement) {
+-          `state_attributes.climate.hvac_action.${
+-            stateObj.attributes.hvac_action
+-          }`
++          `state_attributes.climate.hvac_action.${stateObj.attributes.hvac_action}`

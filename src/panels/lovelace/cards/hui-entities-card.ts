@@ -1,9 +1,12 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   PropertyValues,
   TemplateResult,
+  customElement,
+  property,
+  css,
+  CSSResult,
 } from "lit-element";
 
 import "../../../components/ha-card";
@@ -11,36 +14,22 @@ import "../components/hui-entities-toggle";
 
 import { fireEvent } from "../../../common/dom/fire_event";
 import { DOMAINS_HIDE_MORE_INFO } from "../../../common/const";
-import { hassLocalizeLitMixin } from "../../../mixins/lit-localize-mixin";
 import { HomeAssistant } from "../../../types";
-import { EntityConfig, EntityRow } from "../entity-rows/types";
+import { EntityRow } from "../entity-rows/types";
 import { LovelaceCard, LovelaceCardEditor } from "../types";
-import { LovelaceCardConfig } from "../../../data/lovelace";
 import { processConfigEntities } from "../common/process-config-entities";
 import { createRowElement } from "../common/create-row-element";
+import { EntitiesCardConfig, EntitiesCardEntityConfig } from "./types";
+
 import computeDomain from "../../../common/entity/compute_domain";
 import applyThemesOnElement from "../../../common/dom/apply_themes_on_element";
 
-export interface EntitiesCardEntityConfig extends EntityConfig {
-  type?: string;
-  secondary_info?: "entity-id" | "last-changed";
-  action_name?: string;
-  service?: string;
-  service_data?: object;
-  url?: string;
-}
-
-export interface EntitiesCardConfig extends LovelaceCardConfig {
-  show_header_toggle?: boolean;
-  title?: string;
-  entities: EntitiesCardEntityConfig[];
-  theme?: string;
-}
-
-class HuiEntitiesCard extends hassLocalizeLitMixin(LitElement)
-  implements LovelaceCard {
+@customElement("hui-entities-card")
+class HuiEntitiesCard extends LitElement implements LovelaceCard {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import(/* webpackChunkName: "hui-entities-card-editor" */ "../editor/config-elements/hui-entities-card-editor");
+    await import(
+      /* webpackChunkName: "hui-entities-card-editor" */ "../editor/config-elements/hui-entities-card-editor"
+    );
     return document.createElement("hui-entities-card-editor");
   }
 
@@ -48,8 +37,10 @@ class HuiEntitiesCard extends hassLocalizeLitMixin(LitElement)
     return { entities: [] };
   }
 
+  @property() protected _config?: EntitiesCardConfig;
+
   protected _hass?: HomeAssistant;
-  protected _config?: EntitiesCardConfig;
+
   protected _configEntities?: EntitiesCardEntityConfig[];
 
   set hass(hass: HomeAssistant) {
@@ -65,12 +56,6 @@ class HuiEntitiesCard extends hassLocalizeLitMixin(LitElement)
     if (entitiesToggle) {
       (entitiesToggle as any).hass = hass;
     }
-  }
-
-  static get properties(): PropertyDeclarations {
-    return {
-      _config: {},
-    };
   }
 
   public getCardSize(): number {
@@ -102,72 +87,61 @@ class HuiEntitiesCard extends hassLocalizeLitMixin(LitElement)
     const { show_header_toggle, title } = this._config;
 
     return html`
-      ${this.renderStyle()}
       <ha-card>
-        ${
-          !title && !show_header_toggle
-            ? html``
-            : html`
-                <div class="header">
-                  <div class="name">${title}</div>
-                  ${
-                    show_header_toggle === false
-                      ? html``
-                      : html`
-                          <hui-entities-toggle
-                            .hass="${this._hass}"
-                            .entities="${
-                              this._configEntities!.map((conf) => conf.entity)
-                            }"
-                          ></hui-entities-toggle>
-                        `
-                  }
-                </div>
-              `
-        }
-        <div id="states">
-          ${
-            this._configEntities!.map((entityConf) =>
-              this.renderEntity(entityConf)
-            )
-          }
+        ${!title && !show_header_toggle
+          ? html``
+          : html`
+              <div class="card-header">
+                <div class="name">${title}</div>
+                ${show_header_toggle === false
+                  ? html``
+                  : html`
+                      <hui-entities-toggle
+                        .hass="${this._hass}"
+                        .entities="${this._configEntities!.map(
+                          (conf) => conf.entity
+                        )}"
+                      ></hui-entities-toggle>
+                    `}
+              </div>
+            `}
+        <div id="states" class="card-content">
+          ${this._configEntities!.map((entityConf) =>
+            this.renderEntity(entityConf)
+          )}
         </div>
       </ha-card>
     `;
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        ha-card {
-          padding: 16px;
-        }
-        #states {
-          margin: -4px 0;
-        }
-        #states > * {
-          margin: 8px 0;
-        }
-        #states > div > * {
-          overflow: hidden;
-        }
-        .header {
-          @apply --paper-font-headline;
-          /* overwriting line-height +8 because entity-toggle can be 40px height,
-            compensating this with reduced padding */
-          line-height: 40px;
-          color: var(--primary-text-color);
-          padding: 4px 0 12px;
-          display: flex;
-          justify-content: space-between;
-        }
-        .header .name {
-          @apply --paper-font-common-nowrap;
-        }
-        .state-card-dialog {
-          cursor: pointer;
-        }
-      </style>
+  static get styles(): CSSResult {
+    return css`
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .card-header .name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .card-header hui-entities-toggle {
+        margin: -4px 0;
+      }
+
+      #states > * {
+        margin: 8px 0;
+      }
+
+      #states > div > * {
+        overflow: hidden;
+      }
+
+      .state-card-dialog {
+        cursor: pointer;
+      }
     `;
   }
 
@@ -200,5 +174,3 @@ declare global {
     "hui-entities-card": HuiEntitiesCard;
   }
 }
-
-customElements.define("hui-entities-card", HuiEntitiesCard);

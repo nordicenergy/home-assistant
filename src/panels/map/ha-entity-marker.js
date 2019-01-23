@@ -2,7 +2,7 @@ import "@polymer/iron-image/iron-image";
 import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
-import EventsMixin from "../../mixins/events-mixin";
+import { EventsMixin } from "../../mixins/events-mixin";
 
 /*
  * @appliesMixin EventsMixin
@@ -34,9 +34,7 @@ class HaEntityMarker extends EventsMixin(PolymerElement) {
       </style>
 
       <div class="marker">
-        <template is="dom-if" if="[[entityName]]"
-          >[[entityName]]</template
-        >
+        <template is="dom-if" if="[[entityName]]">[[entityName]]</template>
         <template is="dom-if" if="[[entityPicture]]">
           <iron-image
             sizing="cover"

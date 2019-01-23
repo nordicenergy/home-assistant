@@ -1,21 +1,27 @@
-import { html, LitElement, TemplateResult } from "lit-element";
+import {
+  html,
+  LitElement,
+  TemplateResult,
+  property,
+  css,
+  CSSResult,
+  customElement,
+  PropertyValues,
+} from "lit-element";
 
 import "../../../components/ha-climate-state";
 import "../components/hui-generic-entity-row";
+import "../components/hui-warning";
 
 import { HomeAssistant } from "../../../types";
 import { EntityRow, EntityConfig } from "./types";
+import { hasConfigOrEntityChanged } from "../common/has-changed";
 
+@customElement("hui-climate-entity-row")
 class HuiClimateEntityRow extends LitElement implements EntityRow {
-  public hass?: HomeAssistant;
-  private _config?: EntityConfig;
+  @property() public hass?: HomeAssistant;
 
-  static get properties() {
-    return {
-      hass: {},
-      _config: {},
-    };
-  }
+  @property() private _config?: EntityConfig;
 
   public setConfig(config: EntityConfig): void {
     if (!config || !config.entity) {
@@ -23,6 +29,10 @@ class HuiClimateEntityRow extends LitElement implements EntityRow {
     }
 
     this._config = config;
+  }
+
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    return hasConfigOrEntityChanged(this, changedProps);
   }
 
   protected render(): TemplateResult | void {
@@ -34,14 +44,17 @@ class HuiClimateEntityRow extends LitElement implements EntityRow {
 
     if (!stateObj) {
       return html`
-        <hui-error-entity-row
-          .entity="${this._config.entity}"
-        ></hui-error-entity-row>
+        <hui-warning
+          >${this.hass.localize(
+            "ui.panel.lovelace.warning.entity_not_found",
+            "entity",
+            this._config.entity
+          )}</hui-warning
+        >
       `;
     }
 
     return html`
-      ${this.renderStyle()}
       <hui-generic-entity-row .hass="${this.hass}" .config="${this._config}">
         <ha-climate-state
           .hass="${this.hass}"
@@ -51,13 +64,11 @@ class HuiClimateEntityRow extends LitElement implements EntityRow {
     `;
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        ha-climate-state {
-          text-align: right;
-        }
-      </style>
+  static get styles(): CSSResult {
+    return css`
+      ha-climate-state {
+        text-align: right;
+      }
     `;
   }
 }
@@ -67,5 +78,3 @@ declare global {
     "hui-climate-entity-row": HuiClimateEntityRow;
   }
 }
-
-customElements.define("hui-climate-entity-row", HuiClimateEntityRow);

@@ -1,49 +1,69 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
+  css,
+  CSSResult,
 } from "lit-element";
 import { classMap } from "lit-html/directives/class-map";
+import { UnsubscribeFunc } from "home-assistant-js-websocket";
 
 import "../../../components/ha-card";
 import "../../../components/ha-markdown";
 
+import { HomeAssistant } from "../../../types";
 import { LovelaceCard, LovelaceCardEditor } from "../types";
-import { LovelaceCardConfig } from "../../../data/lovelace";
+import { MarkdownCardConfig } from "./types";
+import { subscribeRenderTemplate } from "../../../data/ws-templates";
 
-export interface Config extends LovelaceCardConfig {
-  content: string;
-  title?: string;
-}
-
+@customElement("hui-markdown-card")
 export class HuiMarkdownCard extends LitElement implements LovelaceCard {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import(/* webpackChunkName: "hui-markdown-card-editor" */ "../editor/config-elements/hui-markdown-card-editor");
+    await import(
+      /* webpackChunkName: "hui-markdown-card-editor" */ "../editor/config-elements/hui-markdown-card-editor"
+    );
     return document.createElement("hui-markdown-card-editor");
   }
+
   public static getStubConfig(): object {
     return { content: " " };
   }
 
-  private _config?: Config;
-
-  static get properties(): PropertyDeclarations {
-    return {
-      _config: {},
-    };
-  }
+  @property() private _config?: MarkdownCardConfig;
+  @property() private _content?: string = "";
+  @property() private _unsubRenderTemplate?: Promise<UnsubscribeFunc>;
+  @property() private _hass?: HomeAssistant;
 
   public getCardSize(): number {
-    return this._config!.content.split("\n").length;
+    return this._config === undefined
+      ? 3
+      : this._config.card_size === undefined
+      ? this._config.content.split("\n").length + (this._config.title ? 1 : 0)
+      : this._config.card_size;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: MarkdownCardConfig): void {
     if (!config.content) {
       throw new Error("Invalid Configuration: Content Required");
     }
 
     this._config = config;
+    this._disconnect().then(() => {
+      if (this._hass) {
+        this._connect();
+      }
+    });
+  }
+
+  public disconnectedCallback() {
+    this._disconnect();
+  }
+
+  public set hass(hass) {
+    this._hass = hass;
+    this._connect();
   }
 
   protected render(): TemplateResult | void {
@@ -52,49 +72,77 @@ export class HuiMarkdownCard extends LitElement implements LovelaceCard {
     }
 
     return html`
-      ${this.renderStyle()}
       <ha-card .header="${this._config.title}">
         <ha-markdown
-          class="markdown ${
-            classMap({
-              "no-header": !this._config.title,
-            })
-          }"
-          .content="${this._config.content}"
+          class="markdown ${classMap({
+            "no-header": !this._config.title,
+          })}"
+          .content="${this._content}"
         ></ha-markdown>
       </ha-card>
     `;
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        :host {
-          @apply --paper-font-body1;
+  private async _connect() {
+    if (!this._unsubRenderTemplate && this._hass && this._config) {
+      this._unsubRenderTemplate = subscribeRenderTemplate(
+        this._hass.connection,
+        (result) => {
+          this._content = result;
+        },
+        {
+          template: this._config.content,
+          entity_ids: this._config.entity_id,
+          variables: { config: this._config },
         }
-        ha-markdown {
-          display: block;
-          padding: 0 16px 16px;
-          -ms-user-select: initial;
-          -webkit-user-select: initial;
-          -moz-user-select: initial;
+      );
+      this._unsubRenderTemplate.catch(() => {
+        this._content = this._config!.content;
+        this._unsubRenderTemplate = undefined;
+      });
+    }
+  }
+
+  private async _disconnect() {
+    if (this._unsubRenderTemplate) {
+      try {
+        const unsub = await this._unsubRenderTemplate;
+        this._unsubRenderTemplate = undefined;
+        await unsub();
+      } catch (e) {
+        if (e.code === "not_found") {
+          // If we get here, the connection was probably already closed. Ignore.
+        } else {
+          throw e;
         }
-        .markdown.no-header {
-          padding-top: 16px;
-        }
-        ha-markdown > *:first-child {
-          margin-top: 0;
-        }
-        ha-markdown > *:last-child {
-          margin-bottom: 0;
-        }
-        ha-markdown a {
-          color: var(--primary-color);
-        }
-        ha-markdown img {
-          max-width: 100%;
-        }
-      </style>
+      }
+    }
+  }
+
+  static get styles(): CSSResult {
+    return css`
+      ha-markdown {
+        display: block;
+        padding: 0 16px 16px;
+        -ms-user-select: initial;
+        -webkit-user-select: initial;
+        -moz-user-select: initial;
+      }
+      .markdown.no-header {
+        padding-top: 16px;
+      }
+      ha-markdown > *:first-child {
+        margin-top: 0;
+      }
+      ha-markdown > *:last-child {
+        margin-bottom: 0;
+      }
+      ha-markdown a {
+        color: var(--primary-color);
+      }
+      ha-markdown img {
+        max-width: 100%;
+      }
     `;
   }
 }
@@ -104,5 +152,3 @@ declare global {
     "hui-markdown-card": HuiMarkdownCard;
   }
 }
-
-customElements.define("hui-markdown-card", HuiMarkdownCard);

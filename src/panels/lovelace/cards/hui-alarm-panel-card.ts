@@ -2,73 +2,71 @@ import {
   html,
   LitElement,
   PropertyValues,
-  PropertyDeclarations,
   TemplateResult,
+  CSSResult,
+  css,
+  property,
+  customElement,
 } from "lit-element";
 import { classMap } from "lit-html/directives/class-map";
 
+import "../../../components/ha-card";
+import "../../../components/ha-label-badge";
+import "../components/hui-warning";
+
 import { LovelaceCard } from "../types";
 import { HomeAssistant } from "../../../types";
-import { LovelaceCardConfig } from "../../../data/lovelace";
 import {
   callAlarmAction,
   FORMAT_NUMBER,
 } from "../../../data/alarm_control_panel";
-import { hassLocalizeLitMixin } from "../../../mixins/lit-localize-mixin";
-
-import "../../../components/ha-card";
-import "../../../components/ha-label-badge";
-import {
-  createErrorCardConfig,
-  createErrorCardElement,
-} from "./hui-error-card";
+import { AlarmPanelCardConfig } from "./types";
+import { PaperInputElement } from "@polymer/paper-input/paper-input";
 
 const ICONS = {
-  armed_away: "hass:security-lock",
+  armed_away: "hass:shield-lock",
   armed_custom_bypass: "hass:security",
-  armed_home: "hass:security-home",
-  armed_night: "hass:security-home",
-  disarmed: "hass:verified",
+  armed_home: "hass:shield-home",
+  armed_night: "hass:shield-home",
+  disarmed: "hass:shield-check",
   pending: "hass:shield-outline",
   triggered: "hass:bell-ring",
 };
 
 const BUTTONS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "clear"];
 
-export interface Config extends LovelaceCardConfig {
-  entity: string;
-  name?: string;
-  states?: string[];
-}
-
-class HuiAlarmPanelCard extends hassLocalizeLitMixin(LitElement)
-  implements LovelaceCard {
+@customElement("hui-alarm-panel-card")
+class HuiAlarmPanelCard extends LitElement implements LovelaceCard {
   public static async getConfigElement() {
-    await import(/* webpackChunkName: "hui-alarm-panel-card-editor" */ "../editor/config-elements/hui-alarm-panel-card-editor");
+    await import(
+      /* webpackChunkName: "hui-alarm-panel-card-editor" */ "../editor/config-elements/hui-alarm-panel-card-editor"
+    );
     return document.createElement("hui-alarm-panel-card-editor");
   }
 
   public static getStubConfig() {
-    return { states: ["arm_home", "arm_away"] };
+    return { states: ["arm_home", "arm_away"], entity: "" };
   }
 
-  public hass?: HomeAssistant;
-  private _config?: Config;
-  private _code?: string;
+  @property() public hass?: HomeAssistant;
 
-  static get properties(): PropertyDeclarations {
-    return {
-      hass: {},
-      _config: {},
-      _code: {},
-    };
-  }
+  @property() private _config?: AlarmPanelCardConfig;
+
+  @property() private _code?: string;
 
   public getCardSize(): number {
-    return 4;
+    if (!this._config || !this.hass) {
+      return 0;
+    }
+
+    const stateObj = this.hass.states[this._config.entity];
+
+    return !stateObj || stateObj.attributes.code_format !== FORMAT_NUMBER
+      ? 3
+      : 8;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: AlarmPanelCardConfig): void {
     if (
       !config ||
       !config.entity ||
@@ -107,80 +105,77 @@ class HuiAlarmPanelCard extends hassLocalizeLitMixin(LitElement)
     const stateObj = this.hass.states[this._config.entity];
 
     if (!stateObj) {
-      const element = createErrorCardElement(
-        createErrorCardConfig("Entity not Found!", this._config)
-      );
       return html`
-        ${element}
+        <hui-warning
+          >${this.hass.localize(
+            "ui.panel.lovelace.warning.entity_not_found",
+            "entity",
+            this._config.entity
+          )}</hui-warning
+        >
       `;
     }
 
     return html`
-      ${this.renderStyle()}
-      <ha-card .header="${this._config.name || this._label(stateObj.state)}">
+      <ha-card
+        .header="${this._config.name ||
+          stateObj.attributes.friendly_name ||
+          this._label(stateObj.state)}"
+      >
         <ha-label-badge
           class="${classMap({ [stateObj.state]: true })}"
           .icon="${ICONS[stateObj.state] || "hass:shield-outline"}"
           .label="${this._stateIconLabel(stateObj.state)}"
         ></ha-label-badge>
         <div id="armActions" class="actions">
-          ${
-            (stateObj.state === "disarmed"
-              ? this._config.states!
-              : ["disarm"]
-            ).map((state) => {
-              return html`
-                <paper-button
-                  noink
-                  raised
-                  .action="${state}"
-                  @click="${this._handleActionClick}"
-                  >${this._label(state)}</paper-button
-                >
-              `;
-            })
-          }
+          ${(stateObj.state === "disarmed"
+            ? this._config.states!
+            : ["disarm"]
+          ).map((state) => {
+            return html`
+              <mwc-button
+                .action="${state}"
+                @click="${this._handleActionClick}"
+                outlined
+              >
+                ${this._label(state)}
+              </mwc-button>
+            `;
+          })}
         </div>
-        ${
-          !stateObj.attributes.code_format
-            ? html``
-            : html`
-                <paper-input
-                  label="Alarm Code"
-                  type="password"
-                  .value="${this._code}"
-                ></paper-input>
-              `
-        }
-        ${
-          stateObj.attributes.code_format !== FORMAT_NUMBER
-            ? html``
-            : html`
-                <div id="keypad">
-                  ${
-                    BUTTONS.map((value) => {
-                      return value === ""
-                        ? html`
-                            <paper-button disabled></paper-button>
-                          `
-                        : html`
-                            <paper-button
-                              noink
-                              raised
-                              .value="${value}"
-                              @click="${this._handlePadClick}"
-                              >${
-                                value === "clear"
-                                  ? this._label("clear_code")
-                                  : value
-                              }</paper-button
-                            >
-                          `;
-                    })
-                  }
-                </div>
-              `
-        }
+        ${!stateObj.attributes.code_format
+          ? html``
+          : html`
+              <paper-input
+                id="alarmCode"
+                label="Alarm Code"
+                type="password"
+                .value="${this._code}"
+              ></paper-input>
+            `}
+        ${stateObj.attributes.code_format !== FORMAT_NUMBER
+          ? html``
+          : html`
+              <div id="keypad">
+                ${BUTTONS.map((value) => {
+                  return value === ""
+                    ? html`
+                        <mwc-button disabled></mwc-button>
+                      `
+                    : html`
+                        <mwc-button
+                          .value="${value}"
+                          @click="${this._handlePadClick}"
+                          dense
+                        >
+                          ${value === "clear"
+                            ? this._label("clear_code")
+                            : value}
+                        </mwc-button>
+                      `;
+                })}
+              </div>
+            `}
       </ha-card>
     `;
   }
@@ -196,8 +191,8 @@ class HuiAlarmPanelCard extends hassLocalizeLitMixin(LitElement)
 
   private _label(state: string): string {
     return (
-      this.localize(`state.alarm_control_panel.${state}`) ||
-      this.localize(`ui.card.alarm_control_panel.${state}`)
+      this.hass!.localize(`state.alarm_control_panel.${state}`) ||
+      this.hass!.localize(`ui.card.alarm_control_panel.${state}`)
     );
   }
 
@@ -207,105 +202,123 @@ class HuiAlarmPanelCard extends hassLocalizeLitMixin(LitElement)
   }
 
   private _handleActionClick(e: MouseEvent): void {
+    const input = this.shadowRoot!.querySelector(
+      "#alarmCode"
+    ) as PaperInputElement;
+    const code =
+      this._code ||
+      (input && input.value && input.value.length > 0 ? input.value : "");
     callAlarmAction(
       this.hass!,
       this._config!.entity,
       (e.currentTarget! as any).action,
-      this._code!
+      code
     );
     this._code = "";
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        ha-card {
-          padding-bottom: 16px;
-          position: relative;
-          --alarm-color-disarmed: var(--label-badge-green);
-          --alarm-color-pending: var(--label-badge-yellow);
-          --alarm-color-triggered: var(--label-badge-red);
-          --alarm-color-armed: var(--label-badge-red);
-          --alarm-color-autoarm: rgba(0, 153, 255, 0.1);
-          --alarm-state-color: var(--alarm-color-armed);
-          --base-unit: 15px;
-          font-size: calc(var(--base-unit));
-        }
-        ha-label-badge {
+  static get styles(): CSSResult {
+    return css`
+      ha-card {
+        padding-bottom: 16px;
+        position: relative;
+        --alarm-color-disarmed: var(--label-badge-green);
+        --alarm-color-pending: var(--label-badge-yellow);
+        --alarm-color-triggered: var(--label-badge-red);
+        --alarm-color-armed: var(--label-badge-red);
+        --alarm-color-autoarm: rgba(0, 153, 255, 0.1);
+        --alarm-state-color: var(--alarm-color-armed);
+        --base-unit: 15px;
+        font-size: calc(var(--base-unit));
+      }
+
+      ha-label-badge {
+        --ha-label-badge-color: var(--alarm-state-color);
+        --label-badge-text-color: var(--alarm-state-color);
+        --label-badge-background-color: var(--paper-card-background-color);
+        color: var(--alarm-state-color);
+        position: absolute;
+        right: 12px;
+        top: 12px;
+      }
+
+      .disarmed {
+        --alarm-state-color: var(--alarm-color-disarmed);
+      }
+
+      .triggered {
+        --alarm-state-color: var(--alarm-color-triggered);
+        animation: pulse 1s infinite;
+      }
+
+      .arming {
+        --alarm-state-color: var(--alarm-color-pending);
+        animation: pulse 1s infinite;
+      }
+
+      .pending {
+        --alarm-state-color: var(--alarm-color-pending);
+        animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
           --ha-label-badge-color: var(--alarm-state-color);
-          --label-badge-text-color: var(--alarm-state-color);
-          --label-badge-background-color: var(--paper-card-background-color);
-          color: var(--alarm-state-color);
-          position: absolute;
-          right: 12px;
-          top: 12px;
         }
-        .disarmed {
-          --alarm-state-color: var(--alarm-color-disarmed);
+        100% {
+          --ha-label-badge-color: rgba(255, 153, 0, 0.3);
         }
-        .triggered {
-          --alarm-state-color: var(--alarm-color-triggered);
-          animation: pulse 1s infinite;
-        }
-        .arming {
-          --alarm-state-color: var(--alarm-color-pending);
-          animation: pulse 1s infinite;
-        }
-        .pending {
-          --alarm-state-color: var(--alarm-color-pending);
-          animation: pulse 1s infinite;
-        }
-        @keyframes pulse {
-          0% {
-            --ha-label-badge-color: var(--alarm-state-color);
-          }
-          100% {
-            --ha-label-badge-color: rgba(255, 153, 0, 0.3);
-          }
-        }
-        paper-input {
-          margin: 0 auto 8px;
-          max-width: 150px;
-          font-size: calc(var(--base-unit));
-          text-align: center;
-        }
-        .state {
-          margin-left: 16px;
-          font-size: calc(var(--base-unit) * 0.9);
-          position: relative;
-          bottom: 16px;
-          color: var(--alarm-state-color);
-          animation: none;
-        }
-        #keypad {
-          display: flex;
-          justify-content: center;
-          flex-wrap: wrap;
-          margin: auto;
-          width: 300px;
-        }
-        #keypad paper-button {
-          margin-bottom: 5%;
-          width: 30%;
-          padding: calc(var(--base-unit));
-          font-size: calc(var(--base-unit) * 1.1);
-        }
-        .actions {
-          margin: 0 8px;
-          padding-top: 20px;
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          font-size: calc(var(--base-unit) * 1);
-        }
-        .actions paper-button {
-          min-width: calc(var(--base-unit) * 9);
-          color: var(--primary-color);
-        }
-        paper-button#disarm {
-          color: var(--google-red-500);
-        }
-      </style>
+      }
+
+      paper-input {
+        margin: 0 auto 8px;
+        max-width: 150px;
+        font-size: calc(var(--base-unit));
+        text-align: center;
+      }
+
+      .state {
+        margin-left: 16px;
+        font-size: calc(var(--base-unit) * 0.9);
+        position: relative;
+        bottom: 16px;
+        color: var(--alarm-state-color);
+        animation: none;
+      }
+
+      #keypad {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: auto;
+        width: 300px;
+      }
+
+      #keypad mwc-button {
+        margin-bottom: 5%;
+        width: 30%;
+        padding: calc(var(--base-unit));
+        font-size: calc(var(--base-unit) * 1.1);
+        box-sizing: border-box;
+      }
+
+      .actions {
+        margin: 0 8px;
+        padding-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        font-size: calc(var(--base-unit) * 1);
+      }
+
+      .actions mwc-button {
+        min-width: calc(var(--base-unit) * 9);
+        margin: 0 4px 4px;
+      }
+
+      mwc-button#disarm {
+        color: var(--google-red-500);
+      }
     `;
   }
 }
@@ -315,5 +328,3 @@ declare global {
     "hui-alarm-panel-card": HuiAlarmPanelCard;
   }
 }
-
-customElements.define("hui-alarm-panel-card", HuiAlarmPanelCard);

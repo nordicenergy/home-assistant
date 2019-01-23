@@ -1,0 +1,6 @@
+diff a/src/panels/config/entity_registry/ha-config-entity-registry.ts b/src/panels/config/entity_registry/ha-config-entity-registry.ts	(rejected hunks)
+@@ -160,3 +160 @@ class HaConfigEntityRegistry extends LitElement {
+-Deleting an entry will not remove the entity from Home Assistant. To do this, you will need to remove the integration "${
+-            entry.platform
+-          }" from Home Assistant.`)
++Deleting an entry will not remove the entity from Home Assistant. To do this, you will need to remove the integration "${entry.platform}" from Home Assistant.`)

@@ -1,7 +1,7 @@
-import { LovelaceConfig } from "../../../../src/data/lovelace";
 import "../../custom-cards/card-modder";
+import { DemoConfig } from "../types";
 
-export const demoLovelaceJimpower: () => LovelaceConfig = () => ({
+export const demoLovelaceJimpower: DemoConfig["lovelace"] = () => ({
   name: "Kingia Castle",
   resources: [
     // {
@@ -1411,7 +1411,7 @@ export const demoLovelaceJimpower: () => LovelaceConfig = () => ({
           type: "vertical-stack",
         },
       ],
-      icon: "mdi:security-home",
+      icon: "hass:shield-home",
       name: "Security",
       background:
         'center / cover no-repeat url("/assets/jimpower/background-15.jpg") fixed',

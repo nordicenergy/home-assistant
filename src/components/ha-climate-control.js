@@ -3,7 +3,7 @@ import "@polymer/paper-icon-button/paper-icon-button";
 import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
-import EventsMixin from "../mixins/events-mixin";
+import { EventsMixin } from "../mixins/events-mixin";
 
 /*
  * @appliesMixin EventsMixin
@@ -25,6 +25,7 @@ class HaClimateControl extends EventsMixin(PolymerElement) {
         #target_temperature {
           @apply --layout-self-center;
           font-size: 200%;
+          direction: ltr;
         }
         .control-buttons {
           font-size: 200%;

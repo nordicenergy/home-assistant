@@ -15,18 +15,20 @@ export interface MoveCardViewDialogParams {
   lovelace: Lovelace;
 }
 
-const registerEditCardDialog = (element: HTMLElement) =>
+const registerEditCardDialog = (element: HTMLElement): Event =>
   fireEvent(element, "register-dialog", {
     dialogShowEvent: "show-move-card-view",
     dialogTag: "hui-dialog-move-card-view",
     dialogImport: () =>
-      import(/* webpackChunkName: "hui-dialog-move-card-view" */ "./hui-dialog-move-card-view"),
+      import(
+        /* webpackChunkName: "hui-dialog-move-card-view" */ "./hui-dialog-move-card-view"
+      ),
   });
 
 export const showMoveCardViewDialog = (
   element: HTMLElement,
   moveCardViewDialogParams: MoveCardViewDialogParams
-) => {
+): void => {
   if (!registeredDialog) {
     registeredDialog = true;
     registerEditCardDialog(element);

@@ -1,0 +1,6 @@
+diff a/src/state/more-info-mixin.ts b/src/state/more-info-mixin.ts	(rejected hunks)
+@@ -23 +23,3 @@ export default (superClass: Constructor<LitElement & HassBaseEl>) =>
+-      import(/* webpackChunkName: "more-info-dialog" */ "../dialogs/ha-more-info-dialog");
++      import(
++        /* webpackChunkName: "more-info-dialog" */ "../dialogs/ha-more-info-dialog"
++      );

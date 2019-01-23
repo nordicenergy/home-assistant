@@ -1,24 +1,32 @@
-import "@polymer/iron-flex-layout/iron-flex-layout-classes";
+import "../../../components/buttons/ha-call-service-button";
+import "../../../components/ha-service-description";
+import "../../../components/ha-card";
+import "../ha-config-section";
+import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
+import "@polymer/paper-icon-button/paper-icon-button";
+import "@polymer/paper-input/paper-input";
+import "@polymer/paper-item/paper-item";
+import "@polymer/paper-listbox/paper-listbox";
+
 import {
+  css,
+  CSSResult,
   html,
   LitElement,
   PropertyDeclarations,
   PropertyValues,
   TemplateResult,
 } from "lit-element";
-import "@polymer/paper-card/paper-card";
-import { HassEntity } from "home-assistant-js-websocket";
-import "../../../components/buttons/ha-call-service-button";
-import "../../../components/ha-service-description";
+
 import {
   Cluster,
   Command,
   fetchCommandsForCluster,
-  ZHADeviceEntity,
+  ZHADevice,
 } from "../../../data/zha";
-import "../../../resources/ha-style";
+import { haStyle } from "../../../resources/styles";
 import { HomeAssistant } from "../../../types";
-import "../ha-config-section";
+import { formatAsPaddedHex } from "./functions";
 import {
   ChangeEvent,
   IssueCommandServiceData,
@@ -28,12 +36,9 @@ import {
 export class ZHAClusterCommands extends LitElement {
   public hass?: HomeAssistant;
   public isWide?: boolean;
-  public selectedNode?: HassEntity;
-  public selectedEntity?: ZHADeviceEntity;
+  public selectedNode?: ZHADevice;
   public selectedCluster?: Cluster;
   private _showHelp: boolean;
-  private _haStyle?: DocumentFragment;
-  private _ironFlex?: DocumentFragment;
   private _commands: Command[];
   private _selectedCommandIndex: number;
   private _manufacturerCodeOverride?: number;
@@ -51,7 +56,6 @@ export class ZHAClusterCommands extends LitElement {
       hass: {},
       isWide: {},
       selectedNode: {},
-      selectedEntity: {},
       selectedCluster: {},
       _showHelp: {},
       _commands: {},
@@ -72,7 +76,6 @@ export class ZHAClusterCommands extends LitElement {
 
   protected render(): TemplateResult | void {
     return html`
-      ${this.renderStyle()}
       <ha-config-section .isWide="${this.isWide}">
         <div class="sectionHeader" slot="header">
           <span>Cluster Commands</span>
@@ -85,7 +88,7 @@ export class ZHAClusterCommands extends LitElement {
         </div>
         <span slot="introduction">View and issue cluster commands.</span>
 
-        <paper-card class="content">
+        <ha-card class="content">
           <div class="command-picker">
             <paper-dropdown-menu
               label="Commands of the selected cluster"
@@ -96,87 +99,85 @@ export class ZHAClusterCommands extends LitElement {
                 .selected="${this._selectedCommandIndex}"
                 @iron-select="${this._selectedCommandChanged}"
               >
-                ${
-                  this._commands.map(
-                    (entry) => html`
-                      <paper-item
-                        >${entry.name + " (id: " + entry.id + ")"}</paper-item
-                      >
-                    `
-                  )
-                }
+                ${this._commands.map(
+                  (entry) => html`
+                    <paper-item
+                      >${entry.name +
+                        " (id: " +
+                        formatAsPaddedHex(entry.id) +
+                        ")"}</paper-item
+                    >
+                  `
+                )}
               </paper-listbox>
             </paper-dropdown-menu>
           </div>
-          ${
-            this._showHelp
-              ? html`
-                  <div class="helpText">Select a command to interact with</div>
-                `
-              : ""
-          }
-          ${
-            this._selectedCommandIndex !== -1
-              ? html`
-                  <div class="input-text">
-                    <paper-input
-                      label="Manufacturer code override"
-                      type="number"
-                      .value="${this._manufacturerCodeOverride}"
-                      @value-changed="${
-                        this._onManufacturerCodeOverrideChanged
-                      }"
-                      placeholder="Value"
-                    ></paper-input>
-                  </div>
-                  <div class="card-actions">
-                    <ha-call-service-button
-                      .hass="${this.hass}"
-                      domain="zha"
-                      service="issue_zigbee_cluster_command"
-                      .serviceData="${this._issueClusterCommandServiceData}"
-                      >Issue Zigbee Command</ha-call-service-button
-                    >
-                    ${
-                      this._showHelp
-                        ? html`
-                            <ha-service-description
-                              .hass="${this.hass}"
-                              domain="zha"
-                              service="issue_zigbee_cluster_command"
-                            ></ha-service-description>
-                          `
-                        : ""
-                    }
-                  </div>
-                `
-              : ""
-          }
-        </paper-card>
+          ${this._showHelp
+            ? html`
+                <div class="help-text">Select a command to interact with</div>
+              `
+            : ""}
+          ${this._selectedCommandIndex !== -1
+            ? html`
+                <div class="input-text">
+                  <paper-input
+                    label="Manufacturer code override"
+                    type="number"
+                    .value="${this._manufacturerCodeOverride}"
+                    @value-changed="${this._onManufacturerCodeOverrideChanged}"
+                    placeholder="Value"
+                  ></paper-input>
+                </div>
+                <div class="card-actions">
+                  <ha-call-service-button
+                    .hass="${this.hass}"
+                    domain="zha"
+                    service="issue_zigbee_cluster_command"
+                    .serviceData="${this._issueClusterCommandServiceData}"
+                    >Issue Zigbee Command</ha-call-service-button
+                  >
+                  ${this._showHelp
+                    ? html`
+                        <ha-service-description
+                          .hass="${this.hass}"
+                          domain="zha"
+                          service="issue_zigbee_cluster_command"
+                          class="help-text2"
+                        ></ha-service-description>
+                      `
+                    : ""}
+                </div>
+              `
+            : ""}
+        </ha-card>
       </ha-config-section>
     `;
   }
 
   private async _fetchCommandsForCluster(): Promise<void> {
-    if (this.selectedEntity && this.selectedCluster && this.hass) {
+    if (this.selectedNode && this.selectedCluster && this.hass) {
       this._commands = await fetchCommandsForCluster(
         this.hass,
-        this.selectedEntity!.entity_id,
-        this.selectedEntity!.device_info!.identifiers[0][1],
+        this.selectedNode!.ieee,
+        this.selectedCluster!.endpoint_id,
         this.selectedCluster!.id,
         this.selectedCluster!.type
       );
+      this._commands.sort((a, b) => {
+        return a.name.localeCompare(b.name);
+      });
     }
   }
 
   private _computeIssueClusterCommandServiceData():
     | IssueCommandServiceData
     | undefined {
-    if (!this.selectedEntity || !this.selectedCluster) {
+    if (!this.selectedNode || !this.selectedCluster) {
       return;
     }
     return {
-      entity_id: this.selectedEntity!.entity_id,
+      ieee: this.selectedNode!.ieee,
+      endpoint_id: this.selectedCluster!.endpoint_id,
       cluster_id: this.selectedCluster!.id,
       cluster_type: this.selectedCluster!.type,
       command: this._commands[this._selectedCommandIndex].id,
@@ -198,30 +199,23 @@ export class ZHAClusterCommands extends LitElement {
     this._issueClusterCommandServiceData = this._computeIssueClusterCommandServiceData();
   }
 
-  private renderStyle(): TemplateResult {
-    if (!this._haStyle) {
-      this._haStyle = document.importNode(
-        (document.getElementById("ha-style")!
-          .children[0] as HTMLTemplateElement).content,
-        true
-      );
-    }
-    if (!this._ironFlex) {
-      this._ironFlex = document.importNode(
-        (document.getElementById("iron-flex")!
-          .children[0] as HTMLTemplateElement).content,
-        true
-      );
-    }
-    return html`
-      ${this._ironFlex} ${this._haStyle}
-      <style>
+  static get styles(): CSSResult[] {
+    return [
+      haStyle,
+      css`
+        .flex {
+          -ms-flex: 1 1 0.000000001px;
+          -webkit-flex: 1;
+          flex: 1;
+          -webkit-flex-basis: 0.000000001px;
+          flex-basis: 0.000000001px;
+        }
+
         .content {
           margin-top: 24px;
         }
 
-        paper-card {
-          display: block;
+        ha-card {
           margin: 0 auto;
           max-width: 600px;
         }
@@ -231,8 +225,15 @@ export class ZHAClusterCommands extends LitElement {
         }
 
         .command-picker {
-          @apply --layout-horizontal;
-          @apply --layout-center-center;
+          display: -ms-flexbox;
+          display: -webkit-flex;
+          display: flex;
+          -ms-flex-direction: row;
+          -webkit-flex-direction: row;
+          flex-direction: row;
+          -ms-flex-align: center;
+          -webkit-align-items: center;
+          align-items: center;
           padding-left: 28px;
           padding-right: 28px;
           padding-bottom: 10px;
@@ -248,7 +249,14 @@ export class ZHAClusterCommands extends LitElement {
           position: relative;
         }
 
-        .helpText {
+        .help-text {
+          color: grey;
+          padding-left: 28px;
+          padding-right: 28px;
+          padding-bottom: 16px;
+        }
+
+        .help-text2 {
           color: grey;
           padding: 16px;
         }
@@ -268,8 +276,8 @@ export class ZHAClusterCommands extends LitElement {
         [hidden] {
           display: none;
         }
-      </style>
-    `;
+      `,
+    ];
   }
 }
 

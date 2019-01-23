@@ -6,8 +6,7 @@
         "logbook": "பதிவேடுகள்",
         "history": "வரலாறு",
         "mailbox": "அஞ்சல் பெட்டி",
-        "shopping_list": "பொருட்கள் பட்டியல்",
-        "dev-mqtt": "MQTT"
+        "shopping_list": "பொருட்கள் பட்டியல்"
     },
     "state": {
         "default": {
@@ -124,7 +123,7 @@
             "open": "திறக்கப்பட்டுள்ளது",
             "opening": "திறக்கிறது",
             "closed": "மூடப்பட்டது",
-            "closing": "மூடுகிறது ",
+            "closing": "மூடுகிறது",
             "stopped": "நிறுத்தப்பட்டது"
         },
         "device_tracker": {
@@ -221,7 +220,7 @@
             "armed_home": "எச்சரிக்கை ஒலி அமைக்கப்பட்டுள்ளது ",
             "armed_away": "எச்சரிக்கை ஒலி அமைக்கப்பட்டுள்ளது ",
             "armed_night": "எச்சரிக்கை ஒலி அமைக்கப்பட்டுள்ளது ",
-            "pending": "கிடப்பில் ",
+            "pending": "கிடப்பில்",
             "arming": "எச்சரிக்கை ஒலி அமைக்கிறது ",
             "disarming": "எச்சரிக்கை ஒலி அமைக்கப்படவில்லை",
             "triggered": "தூண்ட",
@@ -236,17 +235,27 @@
         "sidebar": {
             "log_out": "வெளியேறு"
         },
+        "panel": {
+            "developer-tools": {
+                "tabs": {
+                    "mqtt": {
+                        "title": "MQTT"
+                    }
+                }
+            },
+            "config": {
+                "zwave": {
+                    "caption": "Z-Wave",
+                    "node_config": {
+                        "set_config_parameter": "கட்டமைப்பு அளவுருவை அமைக்கவும்"
+                    }
+                }
+            }
+        },
         "login-form": {
             "password": "கடவுச்சொல்",
             "remember": "நினைவில் கொள்",
             "log_in": "உள் நுழை"
-        },
-        "panel": {
-            "config": {
-                "zwave": {
-                    "caption": "Z-Wave"
-                }
-            }
         }
     },
     "domain": {

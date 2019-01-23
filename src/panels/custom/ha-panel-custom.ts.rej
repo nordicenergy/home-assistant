@@ -1,0 +1,6 @@
+diff a/src/panels/custom/ha-panel-custom.ts b/src/panels/custom/ha-panel-custom.ts	(rejected hunks)
+@@ -81,3 +81 @@ export class HaPanelCustom extends UpdatingElement {
+-        !confirm(`Do you trust the external panel "${config.name}" at "${
+-          tempA.href
+-        }"?
++        !confirm(`Do you trust the external panel "${config.name}" at "${tempA.href}"?

@@ -1,22 +1,22 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
 } from "lit-element";
 import "@polymer/paper-input/paper-input";
 
+import "../../../../components/entity/ha-entity-picker";
+import "../../../../components/ha-icon";
+
 import { struct } from "../../common/structs/struct";
 import { EntitiesEditorEvent, EditorTarget } from "../types";
-import { hassLocalizeLitMixin } from "../../../../mixins/lit-localize-mixin";
 import { HomeAssistant } from "../../../../types";
 import { LovelaceCardEditor } from "../../types";
 import { fireEvent } from "../../../../common/dom/fire_event";
-import { Config } from "../../cards/hui-alarm-panel-card";
 import { configElementStyle } from "./config-elements-style";
-
-import "../../../../components/entity/ha-entity-picker";
-import "../../../../components/ha-icon";
+import { PlantStatusCardConfig } from "../../cards/types";
 
 const cardConfigStruct = struct({
   type: "string",
@@ -24,18 +24,16 @@ const cardConfigStruct = struct({
   name: "string?",
 });
 
-export class HuiPlantStatusCardEditor extends hassLocalizeLitMixin(LitElement)
+@customElement("hui-plant-status-card-editor")
+export class HuiPlantStatusCardEditor extends LitElement
   implements LovelaceCardEditor {
-  public hass?: HomeAssistant;
-  private _config?: Config;
+  @property() public hass?: HomeAssistant;
 
-  public setConfig(config: Config): void {
+  @property() private _config?: PlantStatusCardConfig;
+
+  public setConfig(config: PlantStatusCardConfig): void {
     config = cardConfigStruct(config);
     this._config = config;
-  }
-
-  static get properties(): PropertyDeclarations {
-    return { hass: {}, _config: {} };
   }
 
   get _entity(): string {
@@ -101,5 +99,3 @@ declare global {
     "hui-plant-status-card-editor": HuiPlantStatusCardEditor;
   }
 }
-
-customElements.define("hui-plant-status-card-editor", HuiPlantStatusCardEditor);

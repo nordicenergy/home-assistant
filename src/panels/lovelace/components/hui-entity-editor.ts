@@ -1,9 +1,13 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   TemplateResult,
+  customElement,
+  property,
+  css,
+  CSSResult,
 } from "lit-element";
+import "@polymer/paper-icon-button/paper-icon-button";
 
 import { HomeAssistant } from "../../../types";
 import { fireEvent } from "../../../common/dom/fire_event";
@@ -12,16 +16,11 @@ import { EntityConfig } from "../entity-rows/types";
 import "../../../components/entity/ha-entity-picker";
 import { EditorTarget } from "../editor/types";
 
+@customElement("hui-entity-editor")
 export class HuiEntityEditor extends LitElement {
-  protected hass?: HomeAssistant;
-  protected entities?: EntityConfig[];
+  @property() protected hass?: HomeAssistant;
 
-  static get properties(): PropertyDeclarations {
-    return {
-      hass: {},
-      entities: {},
-    };
-  }
+  @property() protected entities?: EntityConfig[];
 
   protected render(): TemplateResult | void {
     if (!this.entities) {
@@ -29,12 +28,11 @@ export class HuiEntityEditor extends LitElement {
     }
 
     return html`
-      ${this.renderStyle()}
       <h3>Entities</h3>
       <div class="entities">
-        ${
-          this.entities.map((entityConf, index) => {
-            return html`
+        ${this.entities.map((entityConf, index) => {
+          return html`
+            <div class="entity">
               <ha-entity-picker
                 .hass="${this.hass}"
                 .value="${entityConf.entity}"
@@ -42,9 +40,23 @@ export class HuiEntityEditor extends LitElement {
                 @change="${this._valueChanged}"
                 allow-custom-entity
               ></ha-entity-picker>
-            `;
-          })
-        }
+              <paper-icon-button
+                title="Move entity down"
+                icon="hass:arrow-down"
+                .index="${index}"
+                @click="${this._entityDown}"
+                ?disabled="${index === this.entities!.length - 1}"
+              ></paper-icon-button>
+              <paper-icon-button
+                title="Move entity up"
+                icon="hass:arrow-up"
+                .index="${index}"
+                @click="${this._entityUp}"
+                ?disabled="${index === 0}"
+              ></paper-icon-button>
+            </div>
+          `;
+        })}
         <ha-entity-picker
           .hass="${this.hass}"
           @change="${this._addEntity}"
@@ -65,6 +77,30 @@ export class HuiEntityEditor extends LitElement {
     fireEvent(this, "entities-changed", { entities: newConfigEntities });
   }
 
+  private _entityUp(ev: Event): void {
+    const target = ev.target! as EditorTarget;
+    const newEntities = this.entities!.concat();
+
+    [newEntities[target.index! - 1], newEntities[target.index!]] = [
+      newEntities[target.index!],
+      newEntities[target.index! - 1],
+    ];
+
+    fireEvent(this, "entities-changed", { entities: newEntities });
+  }
+
+  private _entityDown(ev: Event): void {
+    const target = ev.target! as EditorTarget;
+    const newEntities = this.entities!.concat();
+
+    [newEntities[target.index! + 1], newEntities[target.index!]] = [
+      newEntities[target.index!],
+      newEntities[target.index! + 1],
+    ];
+
+    fireEvent(this, "entities-changed", { entities: newEntities });
+  }
+
   private _valueChanged(ev: Event): void {
     const target = ev.target! as EditorTarget;
     const newConfigEntities = this.entities!.concat();
@@ -81,13 +117,18 @@ export class HuiEntityEditor extends LitElement {
     fireEvent(this, "entities-changed", { entities: newConfigEntities });
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        .entities {
-          padding-left: 20px;
-        }
-      </style>
+  static get styles(): CSSResult {
+    return css`
+      .entities {
+        padding-left: 20px;
+      }
+      .entity {
+        display: flex;
+        align-items: flex-end;
+      }
+      .entity ha-entity-picker {
+        flex-grow: 1;
+      }
     `;
   }
 }
@@ -97,5 +138,3 @@ declare global {
     "hui-entity-editor": HuiEntityEditor;
   }
 }
-
-customElements.define("hui-entity-editor", HuiEntityEditor);

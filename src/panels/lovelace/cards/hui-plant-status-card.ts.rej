@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/cards/hui-plant-status-card.ts b/src/panels/lovelace/cards/hui-plant-status-card.ts	(rejected hunks)
+@@ -35 +35,3 @@ class HuiPlantStatusCard extends LitElement implements LovelaceCard {
+-    await import(/* webpackChunkName: "hui-plant-status-card-editor" */ "../editor/config-elements/hui-plant-status-card-editor");
++    await import(
++      /* webpackChunkName: "hui-plant-status-card-editor" */ "../editor/config-elements/hui-plant-status-card-editor"
++    );

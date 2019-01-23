@@ -1,0 +1,6 @@
+diff a/src/panels/map/ha-entity-marker.js b/src/panels/map/ha-entity-marker.js	(rejected hunks)
+@@ -37,3 +37 @@ class HaEntityMarker extends EventsMixin(PolymerElement) {
+-        <template is="dom-if" if="[[entityName]]"
+-          >[[entityName]]</template
+-        >
++        <template is="dom-if" if="[[entityName]]">[[entityName]]</template>

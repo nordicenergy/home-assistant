@@ -1,0 +1,6 @@
+diff a/src/util/hass-translation.ts b/src/util/hass-translation.ts	(rejected hunks)
+@@ -108,3 +108 @@ async function fetchTranslation(fingerprint) {
+-      `Fail to fetch translation ${fingerprint}: HTTP response status is ${
+-        response.status
+-      }`
++      `Fail to fetch translation ${fingerprint}: HTTP response status is ${response.status}`

@@ -22,18 +22,20 @@ export interface EditViewDialogParams {
   viewIndex?: number;
 }
 
-const registerEditViewDialog = (element: HTMLElement) =>
+const registerEditViewDialog = (element: HTMLElement): Event =>
   fireEvent(element, "register-dialog", {
     dialogShowEvent,
     dialogTag,
     dialogImport: () =>
-      import(/* webpackChunkName: "hui-dialog-edit-view" */ "./hui-dialog-edit-view"),
+      import(
+        /* webpackChunkName: "hui-dialog-edit-view" */ "./hui-dialog-edit-view"
+      ),
   });
 
 export const showEditViewDialog = (
   element: HTMLElement,
   editViewDialogParams: EditViewDialogParams
-) => {
+): void => {
   if (!registeredDialog) {
     registeredDialog = true;
     registerEditViewDialog(element);

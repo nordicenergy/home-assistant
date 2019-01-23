@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/cards/hui-entity-button-card.ts b/src/panels/lovelace/cards/hui-entity-button-card.ts	(rejected hunks)
+@@ -35 +35,3 @@ class HuiEntityButtonCard extends LitElement implements LovelaceCard {
+-    await import(/* webpackChunkName: "hui-entity-button-card-editor" */ "../editor/config-elements/hui-entity-button-card-editor");
++    await import(
++      /* webpackChunkName: "hui-entity-button-card-editor" */ "../editor/config-elements/hui-entity-button-card-editor"
++    );
