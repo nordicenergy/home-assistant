@@ -11,22 +11,18 @@ import {
 import "../../../components/ha-card";
 
 import { LovelaceCard, LovelaceCardEditor } from "../types";
-import { LovelaceCardConfig, ActionConfig } from "../../../data/lovelace";
 import { HomeAssistant } from "../../../types";
 import { classMap } from "lit-html/directives/class-map";
 import { handleClick } from "../common/handle-click";
 import { longPress } from "../common/directives/long-press-directive";
-
-export interface Config extends LovelaceCardConfig {
-  image?: string;
-  tap_action?: ActionConfig;
-  hold_action?: ActionConfig;
-}
+import { PictureCardConfig } from "./types";
 
 @customElement("hui-picture-card")
 export class HuiPictureCard extends LitElement implements LovelaceCard {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import(/* webpackChunkName: "hui-picture-card-editor" */ "../editor/config-elements/hui-picture-card-editor");
+    await import(
+      /* webpackChunkName: "hui-picture-card-editor" */ "../editor/config-elements/hui-picture-card-editor"
+    );
     return document.createElement("hui-picture-card-editor");
   }
   public static getStubConfig(): object {
@@ -40,13 +36,13 @@ export class HuiPictureCard extends LitElement implements LovelaceCard {
 
   public hass?: HomeAssistant;
 
-  @property() protected _config?: Config;
+  @property() protected _config?: PictureCardConfig;
 
   public getCardSize(): number {
     return 3;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: PictureCardConfig): void {
     if (!config || !config.image) {
       throw new Error("Invalid Configuration: 'image' required");
     }
@@ -70,7 +66,7 @@ export class HuiPictureCard extends LitElement implements LovelaceCard {
           ),
         })}"
       >
-        <img src="${this._config.image}" />
+        <img src="${this.hass.hassUrl(this._config.image)}" />
       </ha-card>
     `;
   }

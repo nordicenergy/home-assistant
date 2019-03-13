@@ -1,0 +1,22 @@
+diff a/src/panels/lovelace/common/generate-lovelace-config.ts b/src/panels/lovelace/common/generate-lovelace-config.ts	(rejected hunks)
+@@ -289,3 +289,4 @@ const generateViewConfig = (
+-        groupEntity.attributes.entity_id.map(
+-          (entityId): [string, HassEntity] => [entityId, entities[entityId]]
+-        ),
++        groupEntity.attributes.entity_id.map((entityId): [
++          string,
++          HassEntity
++        ] => [entityId, entities[entityId]]),
+@@ -305,3 +306,4 @@ const generateViewConfig = (
+-          ungroupedEntitites[domain].map(
+-            (entityId): [string, HassEntity] => [entityId, entities[entityId]]
+-          ),
++          ungroupedEntitites[domain].map((entityId): [string, HassEntity] => [
++            entityId,
++            entities[entityId],
++          ]),
+@@ -420 +422,3 @@ export const generateLovelaceConfigFromData = async (
+-    import(/* webpackChunkName: "hui-empty-state-card" */ "../cards/hui-empty-state-card");
++    import(
++      /* webpackChunkName: "hui-empty-state-card" */ "../cards/hui-empty-state-card"
++    );

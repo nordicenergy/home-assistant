@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/cards/hui-picture-entity-card.ts b/src/panels/lovelace/cards/hui-picture-entity-card.ts	(rejected hunks)
+@@ -46 +46,3 @@ class HuiPictureEntityCard extends LitElement implements LovelaceCard {
+-      (!config.image && !config.state_image && !config.camera_image)
++      !config.image &&
++      !config.state_image &&
++      !config.camera_image

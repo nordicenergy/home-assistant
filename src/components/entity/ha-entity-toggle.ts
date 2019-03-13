@@ -14,6 +14,8 @@ import {
 } from "lit-element";
 import { HomeAssistant } from "../../types";
 import { HassEntity } from "home-assistant-js-websocket";
+import { forwardHaptic } from "../../data/haptics";
+import computeStateName from "../../common/entity/compute_state_name";
 
 const isOn = (stateObj?: HassEntity) =>
   stateObj !== undefined && !STATES_OFF.includes(stateObj.state);
@@ -34,11 +36,13 @@ class HaEntityToggle extends LitElement {
     if (this.stateObj.attributes.assumed_state) {
       return html`
         <paper-icon-button
+          aria-label=${`Turn ${computeStateName(this.stateObj)} off`}
           icon="hass:flash-off"
           @click=${this._turnOff}
           ?state-active=${!this._isOn}
         ></paper-icon-button>
         <paper-icon-button
+          aria-label=${`Turn ${computeStateName(this.stateObj)} on`}
           icon="hass:flash"
           @click=${this._turnOn}
           ?state-active=${this._isOn}
@@ -48,6 +52,9 @@ class HaEntityToggle extends LitElement {
 
     return html`
       <paper-toggle-button
+        aria-label=${`Toggle ${computeStateName(this.stateObj)} ${
+          this._isOn ? "off" : "on"
+        }`}
         .checked=${this._isOn}
         @change=${this._toggleChanged}
       ></paper-toggle-button>
@@ -89,6 +96,7 @@ class HaEntityToggle extends LitElement {
     if (!this.hass || !this.stateObj) {
       return;
     }
+    forwardHaptic("light");
     const stateDomain = computeStateDomain(this.stateObj);
     let serviceDomain;
     let service;

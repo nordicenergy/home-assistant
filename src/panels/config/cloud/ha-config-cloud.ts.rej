@@ -1,0 +1,16 @@
+diff a/src/panels/config/cloud/ha-config-cloud.ts b/src/panels/config/cloud/ha-config-cloud.ts	(rejected hunks)
+@@ -49 +49,3 @@ class HaConfigCloud extends HassRouterPage {
+-          import(/* webpackChunkName: "cloud-register" */ "./register/cloud-register"),
++          import(
++            /* webpackChunkName: "cloud-register" */ "./register/cloud-register"
++          ),
+@@ -54 +56,3 @@ class HaConfigCloud extends HassRouterPage {
+-          import(/* webpackChunkName: "cloud-forgot-password" */ "./forgot-password/cloud-forgot-password"),
++          import(
++            /* webpackChunkName: "cloud-forgot-password" */ "./forgot-password/cloud-forgot-password"
++          ),
+@@ -62 +66,3 @@ class HaConfigCloud extends HassRouterPage {
+-          import(/* webpackChunkName: "cloud-google-assistant" */ "./google-assistant/cloud-google-assistant"),
++          import(
++            /* webpackChunkName: "cloud-google-assistant" */ "./google-assistant/cloud-google-assistant"
++          ),

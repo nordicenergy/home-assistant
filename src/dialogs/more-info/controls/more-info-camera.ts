@@ -1,19 +1,65 @@
-import { property, UpdatingElement, PropertyValues } from "lit-element";
+import {
+  property,
+  PropertyValues,
+  LitElement,
+  TemplateResult,
+  html,
+  CSSResult,
+  css,
+} from "lit-element";
 
-import computeStateName from "../../../common/entity/compute_state_name";
 import { HomeAssistant, CameraEntity } from "../../../types";
-import { fireEvent } from "../../../common/dom/fire_event";
-import { fetchStreamUrl, computeMJPEGStreamUrl } from "../../../data/camera";
+import {
+  CAMERA_SUPPORT_STREAM,
+  CameraPreferences,
+  fetchCameraPrefs,
+  updateCameraPrefs,
+} from "../../../data/camera";
+import { supportsFeature } from "../../../common/entity/supports-feature";
+import "../../../components/ha-camera-stream";
+import "@polymer/paper-checkbox/paper-checkbox";
+// Not duplicate import, it's for typing
+// tslint:disable-next-line
+import { PaperCheckboxElement } from "@polymer/paper-checkbox/paper-checkbox";
 
-type HLSModule = typeof import("hls.js");
-
-class MoreInfoCamera extends UpdatingElement {
+class MoreInfoCamera extends LitElement {
   @property() public hass?: HomeAssistant;
   @property() public stateObj?: CameraEntity;
+  @property() private _cameraPrefs?: CameraPreferences;
+  @property() private _attached = false;
+
+  public connectedCallback() {
+    super.connectedCallback();
+    this._attached = true;
+  }
 
   public disconnectedCallback() {
     super.disconnectedCallback();
-    this._teardownPlayback();
+    this._attached = false;
+  }
+
+  protected render(): TemplateResult | void {
+    if (!this._attached || !this.hass || !this.stateObj) {
+      return html``;
+    }
+
+    return html`
+      <ha-camera-stream
+        .hass="${this.hass}"
+        .stateObj="${this.stateObj}"
+        showcontrols
+      ></ha-camera-stream>
+      ${this._cameraPrefs
+        ? html`
+            <paper-checkbox
+              .checked=${this._cameraPrefs.preload_stream}
+              @change=${this._handleCheckboxChanged}
+            >
+              Preload stream
+            </paper-checkbox>
+          `
+        : undefined}
+    `;
   }
 
   protected updated(changedProps: PropertyValues) {
@@ -30,102 +76,50 @@ class MoreInfoCamera extends UpdatingElement {
       return;
     }
 
-    // Tear down if we have something and we need to build it up
-    if (oldEntityId) {
-      this._teardownPlayback();
-    }
-
-    if (curEntityId) {
-      this._startPlayback();
+    if (
+      curEntityId &&
+      this.hass!.config.components.includes("stream") &&
+      supportsFeature(this.stateObj!, CAMERA_SUPPORT_STREAM)
+    ) {
+      // Fetch in background while we set up the video.
+      this._fetchCameraPrefs();
     }
   }
 
-  private async _startPlayback(): Promise<void> {
-    if (!this.stateObj) {
-      return;
-    }
+  private async _fetchCameraPrefs() {
+    this._cameraPrefs = await fetchCameraPrefs(
+      this.hass!,
+      this.stateObj!.entity_id
+    );
+  }
 
-    const videoEl = document.createElement("video");
-    videoEl.style.width = "100%";
-    videoEl.autoplay = true;
-    videoEl.controls = true;
-    videoEl.muted = true;
-
-    // tslint:disable-next-line
-    let Hls: HLSModule | undefined;
-
-    let hlsSupported =
-      videoEl.canPlayType("application/vnd.apple.mpegurl") !== "";
-
-    if (!hlsSupported) {
-      Hls = ((await import(/* webpackChunkName: "hls.js" */ "hls.js")) as any)
-        .default as HLSModule;
-      hlsSupported = Hls.isSupported();
-    }
-
-    if (hlsSupported) {
-      try {
-        const { url } = await fetchStreamUrl(
-          this.hass!,
-          this.stateObj.entity_id
-        );
-
-        if (Hls) {
-          this._renderHLSPolyfill(videoEl, Hls, url);
-        } else {
-          this._renderHLSNative(videoEl, url);
+  private async _handleCheckboxChanged(ev) {
+    const checkbox = ev.currentTarget as PaperCheckboxElement;
+    try {
+      this._cameraPrefs = await updateCameraPrefs(
+        this.hass!,
+        this.stateObj!.entity_id,
+        {
+          preload_stream: checkbox.checked!,
         }
-        return;
-      } catch (err) {
-        // Fails if entity doesn't support it. In that case we go
-        // for mjpeg.
+      );
+    } catch (err) {
+      alert(err.message);
+      checkbox.checked = !checkbox.checked;
+    }
+  }
+
+  static get styles(): CSSResult {
+    return css`
+      paper-checkbox {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: var(--secondary-background-color);
+        padding: 5px;
+        border-bottom-left-radius: 6px;
       }
-    }
-
-    this._renderMJPEG();
-  }
-
-  private async _renderHLSNative(videoEl: HTMLVideoElement, url: string) {
-    videoEl.src = url;
-    await new Promise((resolve) =>
-      videoEl.addEventListener("loadedmetadata", resolve)
-    );
-    videoEl.play();
-  }
-
-  private async _renderHLSPolyfill(
-    videoEl: HTMLVideoElement,
-    // tslint:disable-next-line
-    Hls: HLSModule,
-    url: string
-  ) {
-    const hls = new Hls();
-    await new Promise((resolve) => {
-      hls.on(Hls.Events.MEDIA_ATTACHED, resolve);
-      hls.attachMedia(videoEl);
-    });
-    hls.loadSource(url);
-    this.appendChild(videoEl);
-    videoEl.addEventListener("loadeddata", () =>
-      fireEvent(this, "iron-resize")
-    );
-  }
-
-  private _renderMJPEG() {
-    const img = document.createElement("img");
-    img.style.width = "100%";
-    img.addEventListener("load", () => fireEvent(this, "iron-resize"));
-    img.src = __DEMO__
-      ? "/demo/webcamp.jpg"
-      : computeMJPEGStreamUrl(this.stateObj!);
-    img.alt = computeStateName(this.stateObj!);
-    this.appendChild(img);
-  }
-
-  private _teardownPlayback(): any {
-    while (this.lastChild) {
-      this.removeChild(this.lastChild);
-    }
+    `;
   }
 }
 

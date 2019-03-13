@@ -1,21 +1,28 @@
+import "../../../components/buttons/ha-call-service-button";
+import "../../../components/ha-service-description";
+import "../../../components/ha-card";
+import "../ha-config-section";
+import "@material/mwc-button/mwc-button";
+import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
+import "@polymer/paper-icon-button/paper-icon-button";
+import "@polymer/paper-listbox/paper-listbox";
+
 import {
+  css,
+  CSSResult,
+  customElement,
   html,
   LitElement,
   property,
   PropertyValues,
   TemplateResult,
-  CSSResult,
-  css,
-  customElement,
 } from "lit-element";
-import "@polymer/paper-card/paper-card";
-import "../../../components/buttons/ha-call-service-button";
-import "../../../components/ha-service-description";
-import { ZHADevice, bindDevices, unbindDevices } from "../../../data/zha";
+
+import { bindDevices, unbindDevices, ZHADevice } from "../../../data/zha";
 import { haStyle } from "../../../resources/styles";
 import { HomeAssistant } from "../../../types";
-import "../ha-config-section";
 import { ItemSelectedEvent } from "./types";
+import "@polymer/paper-item/paper-item";
 
 @customElement("zha-binding-control")
 export class ZHABindingControl extends LitElement {
@@ -48,7 +55,7 @@ export class ZHABindingControl extends LitElement {
         </div>
         <span slot="introduction">Bind and unbind devices.</span>
 
-        <paper-card class="content">
+        <ha-card class="content">
           <div class="command-picker">
             <paper-dropdown-menu label="Bindable Devices" class="flex">
               <paper-listbox
@@ -58,7 +65,11 @@ export class ZHABindingControl extends LitElement {
               >
                 ${this.bindableDevices.map(
                   (device) => html`
-                    <paper-item>${device.name}</paper-item>
+                    <paper-item
+                      >${device.user_given_name
+                        ? device.user_given_name
+                        : device.name}</paper-item
+                    >
                   `
                 )}
               </paper-listbox>
@@ -91,7 +102,7 @@ export class ZHABindingControl extends LitElement {
                 `
               : ""}
           </div>
-        </paper-card>
+        </ha-card>
       </ha-config-section>
     `;
   }
@@ -144,8 +155,7 @@ export class ZHABindingControl extends LitElement {
           margin-top: 24px;
         }
 
-        paper-card {
-          display: block;
+        ha-card {
           margin: 0 auto;
           max-width: 600px;
         }

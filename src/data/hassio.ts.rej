@@ -1,0 +1,6 @@
+diff a/src/data/hassio.ts b/src/data/hassio.ts	(rejected hunks)
+@@ -152,3 +152 @@ export const createHassioSession = async (hass: HomeAssistant) => {
+-  document.cookie = `ingress_session=${
+-    response.data.session
+-  };path=/api/hassio_ingress/`;
++  document.cookie = `ingress_session=${response.data.session};path=/api/hassio_ingress/`;

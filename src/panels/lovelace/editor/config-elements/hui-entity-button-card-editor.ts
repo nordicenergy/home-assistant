@@ -7,6 +7,10 @@ import {
 } from "lit-element";
 import "@polymer/paper-input/paper-input";
 
+import "../../components/hui-action-editor";
+import "../../components/hui-theme-select-editor";
+import "../../components/hui-entity-editor";
+
 import { struct } from "../../common/structs/struct";
 import {
   EntitiesEditorEvent,
@@ -16,19 +20,18 @@ import {
 import { HomeAssistant } from "../../../../types";
 import { LovelaceCardEditor } from "../../types";
 import { fireEvent } from "../../../../common/dom/fire_event";
-import { Config } from "../../cards/hui-entity-button-card";
 import { configElementStyle } from "./config-elements-style";
 import { ActionConfig } from "../../../../data/lovelace";
-
-import "../../components/hui-action-editor";
-import "../../components/hui-theme-select-editor";
-import "../../components/hui-entity-editor";
+import { EntityButtonCardConfig } from "../../cards/types";
 
 const cardConfigStruct = struct({
   type: "string",
   entity: "string?",
   name: "string?",
+  show_name: "boolean?",
   icon: "string?",
+  show_icon: "boolean?",
+  icon_height: "string?",
   tap_action: struct.optional(actionConfigStruct),
   hold_action: struct.optional(actionConfigStruct),
   theme: "string?",
@@ -39,9 +42,9 @@ export class HuiEntityButtonCardEditor extends LitElement
   implements LovelaceCardEditor {
   @property() public hass?: HomeAssistant;
 
-  @property() private _config?: Config;
+  @property() private _config?: EntityButtonCardConfig;
 
-  public setConfig(config: Config): void {
+  public setConfig(config: EntityButtonCardConfig): void {
     config = cardConfigStruct(config);
     this._config = config;
   }
@@ -54,8 +57,22 @@ export class HuiEntityButtonCardEditor extends LitElement
     return this._config!.name || "";
   }
 
+  get _show_name(): boolean {
+    return this._config!.show_name || true;
+  }
+
   get _icon(): string {
     return this._config!.icon || "";
+  }
+
+  get _show_icon(): boolean {
+    return this._config!.show_icon || true;
+  }
+
+  get _icon_height(): string {
+    return this._config!.icon_height && this._config!.icon_height.includes("px")
+      ? String(parseFloat(this._config!.icon_height))
+      : "";
   }
 
   get _tap_action(): ActionConfig {
@@ -101,12 +118,38 @@ export class HuiEntityButtonCardEditor extends LitElement
             @value-changed="${this._valueChanged}"
           ></paper-input>
         </div>
-        <hui-theme-select-editor
-          .hass="${this.hass}"
-          .value="${this._theme}"
-          .configValue="${"theme"}"
-          @theme-changed="${this._valueChanged}"
-        ></hui-theme-select-editor>
+        <div class="side-by-side">
+          <paper-toggle-button
+            ?checked="${this._config!.show_name !== false}"
+            .configValue="${"show_name"}"
+            @change="${this._valueChanged}"
+            >Show Name?</paper-toggle-button
+          >
+          <paper-toggle-button
+            ?checked="${this._config!.show_icon !== false}"
+            .configValue="${"show_icon"}"
+            @change="${this._valueChanged}"
+            >Show Icon?</paper-toggle-button
+          >
+        </div>
+        <div class="side-by-side">
+          <paper-input
+            label="Icon Height (Optional)"
+            .value="${this._icon_height}"
+            .configValue="${"icon_height"}"
+            @value-changed="${this._valueChanged}"
+            type="number"
+          ><div class="suffix" slot="suffix">px</div>
+          </paper-input>
+          <hui-theme-select-editor
+            .hass="${this.hass}"
+            .value="${this._theme}"
+            .configValue="${"theme"}"
+            @theme-changed="${this._valueChanged}"
+          ></hui-theme-select-editor>
+        </paper-input>
+
+        </div>
         <div class="side-by-side">
           <hui-action-editor
             label="Tap Action"
@@ -145,9 +188,23 @@ export class HuiEntityButtonCardEditor extends LitElement
       if (target.value === "") {
         delete this._config[target.configValue!];
       } else {
+        let newValue: string | undefined;
+        if (
+          target.configValue === "icon_height" &&
+          !isNaN(Number(target.value))
+        ) {
+          newValue = `${String(target.value)}px`;
+        }
         this._config = {
           ...this._config,
-          [target.configValue!]: target.value ? target.value : target.config,
+          [target.configValue!]:
+            target.checked !== undefined
+              ? target.checked
+              : newValue !== undefined
+              ? newValue
+              : target.value
+              ? target.value
+              : target.config,
         };
       }
     }

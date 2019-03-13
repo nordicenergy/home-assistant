@@ -9,31 +9,22 @@ import {
 } from "lit-element";
 
 import { createStyledHuiElement } from "./picture-elements/create-styled-hui-element";
-
 import { LovelaceCard } from "../types";
-import { LovelaceCardConfig } from "../../../data/lovelace";
 import { HomeAssistant } from "../../../types";
 import { LovelaceElementConfig, LovelaceElement } from "../elements/types";
-
-interface Config extends LovelaceCardConfig {
-  title?: string;
-  image?: string;
-  camera_image?: string;
-  state_image?: {};
-  aspect_ratio?: string;
-  entity?: string;
-  elements: LovelaceElementConfig[];
-}
+import { PictureElementsCardConfig } from "./types";
 
 @customElement("hui-picture-elements-card")
 class HuiPictureElementsCard extends LitElement implements LovelaceCard {
-  @property() private _config?: Config;
+  @property() private _config?: PictureElementsCardConfig;
 
   private _hass?: HomeAssistant;
 
   set hass(hass: HomeAssistant) {
     this._hass = hass;
-    for (const el of this.shadowRoot!.querySelectorAll("#root > *")) {
+    for (const el of Array.from(
+      this.shadowRoot!.querySelectorAll("#root > *")
+    )) {
       const element = el as LovelaceElement;
       element.hass = this._hass;
     }
@@ -43,7 +34,7 @@ class HuiPictureElementsCard extends LitElement implements LovelaceCard {
     return 4;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: PictureElementsCardConfig): void {
     if (!config) {
       throw new Error("Invalid Configuration");
     } else if (
@@ -71,6 +62,7 @@ class HuiPictureElementsCard extends LitElement implements LovelaceCard {
             .image="${this._config.image}"
             .stateImage="${this._config.state_image}"
             .cameraImage="${this._config.camera_image}"
+            .cameraView="${this._config.camera_view}"
             .entity="${this._config.entity}"
             .aspectRatio="${this._config.aspect_ratio}"
           ></hui-image>

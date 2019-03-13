@@ -4,14 +4,7 @@ import { LovelaceCard } from "../types";
 import { LovelaceCardConfig } from "../../../data/lovelace";
 import { EntityConfig } from "../entity-rows/types";
 import { HomeAssistant } from "../../../types";
-
-export interface EntityFilterCardConfig extends LovelaceCardConfig {
-  type: "entity-filter";
-  entities: Array<EntityConfig | string>;
-  state_filter: string[];
-  card: Partial<LovelaceCardConfig>;
-  show_empty?: boolean;
-}
+import { EntityFilterCardConfig } from "./types";
 
 class EntityFilterCard extends HTMLElement implements LovelaceCard {
   public isPanel?: boolean;
@@ -19,6 +12,8 @@ class EntityFilterCard extends HTMLElement implements LovelaceCard {
   private _config?: EntityFilterCardConfig;
   private _configEntities?: EntityConfig[];
   private _baseCardConfig?: LovelaceCardConfig;
+  private _hass?: HomeAssistant;
+  private _oldEntities?: EntityConfig[];
 
   public getCardSize(): number {
     return this._element ? this._element.getCardSize() : 1;
@@ -48,6 +43,13 @@ class EntityFilterCard extends HTMLElement implements LovelaceCard {
       return;
     }
 
+    if (!this.haveEntitiesChanged(hass)) {
+      this._hass = hass;
+      return;
+    }
+
+    this._hass = hass;
+
     if (!this._configEntities) {
       this._configEntities = processConfigEntities(this._config.entities);
     }
@@ -69,7 +71,16 @@ class EntityFilterCard extends HTMLElement implements LovelaceCard {
     }
 
     if (element.tagName !== "HUI-ERROR-CARD") {
-      element.setConfig({ ...this._baseCardConfig!, entities: entitiesList });
+      const isSame =
+        this._oldEntities &&
+        entitiesList.length === this._oldEntities.length &&
+        entitiesList.every((entity, idx) => entity === this._oldEntities![idx]);
+
+      if (!isSame) {
+        this._oldEntities = entitiesList;
+        element.setConfig({ ...this._baseCardConfig!, entities: entitiesList });
+      }
+
       element.isPanel = this.isPanel;
       element.hass = hass;
     }
@@ -80,6 +91,27 @@ class EntityFilterCard extends HTMLElement implements LovelaceCard {
     }
 
     this.style.display = "block";
+  }
+
+  private haveEntitiesChanged(hass: HomeAssistant): boolean {
+    if (!this._hass) {
+      return true;
+    }
+
+    if (!this._configEntities) {
+      return true;
+    }
+
+    for (const config of this._configEntities) {
+      if (
+        this._hass.states[config.entity] !== hass.states[config.entity] ||
+        this._hass.localize !== hass.localize
+      ) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private _cardElement(): LovelaceCard | undefined {

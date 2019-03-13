@@ -18,16 +18,21 @@ export interface PolymerChangedEvent<T> extends Event {
   };
 }
 
+export interface PolymerIronSelectEvent<T> extends Event {
+  detail: {
+    item: T;
+  };
+}
+
 declare global {
   // for fire event
   interface HASSDomEvents {
     "hass-logout": undefined;
     "iron-resize": undefined;
     "config-refresh": undefined;
-    "ha-refresh-cloud-status": undefined;
-    "location-changed": undefined;
-    "hass-notification": {
-      message: string;
+    "hass-api-called": {
+      success: boolean;
+      response: unknown;
     };
   }
 }

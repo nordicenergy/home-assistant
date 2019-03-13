@@ -1,0 +1,6 @@
+diff a/src/dialogs/config-flow/show-dialog-config-flow.ts b/src/dialogs/config-flow/show-dialog-config-flow.ts	(rejected hunks)
+@@ -74,3 +74 @@ export const showConfigFlowDialog = (
+-        `component.${step.handler}.config.step.${step.step_id}.data.${
+-          field.name
+-        }`
++        `component.${step.handler}.config.step.${step.step_id}.data.${field.name}`

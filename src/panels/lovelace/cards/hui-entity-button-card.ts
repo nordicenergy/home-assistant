@@ -20,49 +20,69 @@ import stateIcon from "../../../common/entity/state_icon";
 import computeStateDomain from "../../../common/entity/compute_state_domain";
 import computeStateName from "../../../common/entity/compute_state_name";
 import applyThemesOnElement from "../../../common/dom/apply_themes_on_element";
+import computeDomain from "../../../common/entity/compute_domain";
+
 import { HomeAssistant, LightEntity } from "../../../types";
 import { LovelaceCard, LovelaceCardEditor } from "../types";
-import { LovelaceCardConfig, ActionConfig } from "../../../data/lovelace";
 import { longPress } from "../common/directives/long-press-directive";
 import { handleClick } from "../common/handle-click";
-
-export interface Config extends LovelaceCardConfig {
-  entity: string;
-  name?: string;
-  icon?: string;
-  theme?: string;
-  tap_action?: ActionConfig;
-  hold_action?: ActionConfig;
-}
+import { DOMAINS_TOGGLE } from "../../../common/const";
+import { EntityButtonCardConfig } from "./types";
 
 @customElement("hui-entity-button-card")
 class HuiEntityButtonCard extends LitElement implements LovelaceCard {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import(/* webpackChunkName: "hui-entity-button-card-editor" */ "../editor/config-elements/hui-entity-button-card-editor");
+    await import(
+      /* webpackChunkName: "hui-entity-button-card-editor" */ "../editor/config-elements/hui-entity-button-card-editor"
+    );
     return document.createElement("hui-entity-button-card-editor");
   }
 
   public static getStubConfig(): object {
     return {
-      tap_action: { action: "more-info" },
-      hold_action: { action: "none" },
+      tap_action: { action: "toggle" },
+      hold_action: { action: "more-info" },
+      show_icon: true,
+      show_name: true,
     };
   }
 
   @property() public hass?: HomeAssistant;
 
-  @property() private _config?: Config;
+  @property() private _config?: EntityButtonCardConfig;
 
   public getCardSize(): number {
     return 2;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: EntityButtonCardConfig): void {
     if (!isValidEntityId(config.entity)) {
       throw new Error("Invalid Entity");
     }
 
-    this._config = { theme: "default", ...config };
+    this._config = {
+      theme: "default",
+      hold_action: { action: "more-info" },
+      show_icon: true,
+      show_name: true,
+      ...config,
+    };
+
+    if (DOMAINS_TOGGLE.has(computeDomain(config.entity))) {
+      this._config = {
+        tap_action: {
+          action: "toggle",
+        },
+        ...this._config,
+      };
+    } else {
+      this._config = {
+        tap_action: {
+          action: "more-info",
+        },
+        ...this._config,
+      };
+    }
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -104,18 +124,29 @@ class HuiEntityButtonCard extends LitElement implements LovelaceCard {
         @ha-hold="${this._handleHold}"
         .longPress="${longPress()}"
       >
-        <ha-icon
-          data-domain="${computeStateDomain(stateObj)}"
-          data-state="${stateObj.state}"
-          .icon="${this._config.icon || stateIcon(stateObj)}"
-          style="${styleMap({
-            filter: this._computeBrightness(stateObj),
-            color: this._computeColor(stateObj),
-          })}"
-        ></ha-icon>
-        <span>
-          ${this._config.name || computeStateName(stateObj)}
-        </span>
+        ${this._config.show_icon
+          ? html`
+              <ha-icon
+                data-domain="${computeStateDomain(stateObj)}"
+                data-state="${stateObj.state}"
+                .icon="${this._config.icon || stateIcon(stateObj)}"
+                style="${styleMap({
+                  filter: this._computeBrightness(stateObj),
+                  color: this._computeColor(stateObj),
+                  height: this._config.icon_height
+                    ? this._config.icon_height
+                    : "auto",
+                })}"
+              ></ha-icon>
+            `
+          : ""}
+        ${this._config.show_name
+          ? html`
+              <span>
+                ${this._config.name || computeStateName(stateObj)}
+              </span>
+            `
+          : ""}
         <mwc-ripple></mwc-ripple>
       </ha-card>
     `;

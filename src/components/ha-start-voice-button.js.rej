@@ -1,0 +1,6 @@
+diff a/src/components/ha-start-voice-button.js b/src/components/ha-start-voice-button.js	(rejected hunks)
+@@ -50 +50,3 @@ class HaStartVoiceButton extends EventsMixin(PolymerElement) {
+-        import(/* webpackChunkName: "voice-command-dialog" */ "../dialogs/ha-voice-command-dialog"),
++        import(
++          /* webpackChunkName: "voice-command-dialog" */ "../dialogs/ha-voice-command-dialog"
++        ),

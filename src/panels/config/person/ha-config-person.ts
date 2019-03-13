@@ -8,7 +8,6 @@ import {
 } from "lit-element";
 import "@polymer/paper-item/paper-item";
 import "@polymer/paper-item/paper-item-body";
-import "@polymer/paper-card/paper-card";
 import "@polymer/paper-fab/paper-fab";
 
 import { HomeAssistant } from "../../../types";
@@ -19,9 +18,10 @@ import {
   deletePerson,
   createPerson,
 } from "../../../data/person";
+import "../../../components/ha-card";
 import "../../../layouts/hass-subpage";
 import "../../../layouts/hass-loading-screen";
-import compare from "../../../common/string/compare";
+import { compare } from "../../../common/string/compare";
 import "../ha-config-section";
 import {
   showPersonDetailDialog,
@@ -70,7 +70,7 @@ class HaConfigPerson extends LitElement {
                 `
               : ""}
           </span>
-          <paper-card class="storage">
+          <ha-card class="storage">
             ${this._storageItems.map((entry) => {
               return html`
                 <paper-item @click=${this._openEditEntry} .entry=${entry}>
@@ -90,10 +90,10 @@ class HaConfigPerson extends LitElement {
                   </div>
                 `
               : html``}
-          </paper-card>
+          </ha-card>
           ${this._configItems.length > 0
             ? html`
-                <paper-card heading="Configuration.yaml persons">
+                <ha-card header="Configuration.yaml persons">
                   ${this._configItems.map((entry) => {
                     return html`
                       <paper-item>
@@ -103,7 +103,7 @@ class HaConfigPerson extends LitElement {
                       </paper-item>
                     `;
                   })}
-                </paper-card>
+                </ha-card>
               `
             : ""}
         </ha-config-section>
@@ -112,7 +112,7 @@ class HaConfigPerson extends LitElement {
       <paper-fab
         ?is-wide=${this.isWide}
         icon="hass:plus"
-        title="Create Area"
+        title="Add Person"
         @click=${this._createPerson}
       ></paper-fab>
     `;
@@ -168,9 +168,9 @@ class HaConfigPerson extends LitElement {
       users: this._allowedUsers(users, entry),
       createEntry: async (values) => {
         const created = await createPerson(this.hass!, values);
-        this._storageItems = this._storageItems!.concat(created).sort(
-          (ent1, ent2) => compare(ent1.name, ent2.name)
-        );
+        this._storageItems = this._storageItems!.concat(
+          created
+        ).sort((ent1, ent2) => compare(ent1.name, ent2.name));
       },
       updateEntry: async (values) => {
         const updated = await updatePerson(this.hass!, entry!.id, values);
@@ -180,9 +180,9 @@ class HaConfigPerson extends LitElement {
       },
       removeEntry: async () => {
         if (
-          !confirm(`Are you sure you want to delete this area?
+          !confirm(`Are you sure you want to delete this person?
 
-All devices in this area will become unassigned.`)
+All devices belonging to this person will become unassigned.`)
         ) {
           return false;
         }
@@ -205,10 +205,10 @@ All devices in this area will become unassigned.`)
       a {
         color: var(--primary-color);
       }
-      paper-card {
-        display: block;
+      ha-card {
         max-width: 600px;
         margin: 16px auto;
+        overflow: hidden;
       }
       .empty {
         text-align: center;
@@ -218,7 +218,7 @@ All devices in this area will become unassigned.`)
         padding-top: 4px;
         padding-bottom: 4px;
       }
-      paper-card.storage paper-item {
+      ha-card.storage paper-item {
         cursor: pointer;
       }
       paper-fab {

@@ -1,0 +1,10 @@
+diff a/src/onboarding/ha-onboarding.ts b/src/onboarding/ha-onboarding.ts	(rejected hunks)
+@@ -87,2 +87,6 @@ class HaOnboarding extends litLocalizeLiteMixin(HassElement) {
+-    import(/* webpackChunkName: "onboarding-integrations" */ "./onboarding-integrations");
+-    import(/* webpackChunkName: "onboarding-core-config" */ "./onboarding-core-config");
++    import(
++      /* webpackChunkName: "onboarding-integrations" */ "./onboarding-integrations"
++    );
++    import(
++      /* webpackChunkName: "onboarding-core-config" */ "./onboarding-core-config"
++    );

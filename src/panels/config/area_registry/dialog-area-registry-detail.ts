@@ -6,10 +6,10 @@ import {
   CSSResult,
   TemplateResult,
 } from "lit-element";
-import "@polymer/paper-dialog/paper-dialog";
 import "@polymer/paper-dialog-scrollable/paper-dialog-scrollable";
 import "@polymer/paper-input/paper-input";
 
+import "../../../components/dialog/ha-paper-dialog";
 import { AreaRegistryDetailDialogParams } from "./show-dialog-area-registry-detail";
 import { PolymerChangedEvent } from "../../../polymer-types";
 import { haStyleDialog } from "../../../resources/styles";
@@ -44,16 +44,17 @@ class DialogAreaDetail extends LitElement {
     if (!this._params) {
       return html``;
     }
+    const entry = this._params.entry;
     const nameInvalid = this._name.trim() === "";
     return html`
-      <paper-dialog
+      <ha-paper-dialog
         with-backdrop
         opened
         @opened-changed="${this._openedChanged}"
       >
         <h2>
-          ${this._params.entry
-            ? this._params.entry.name
+          ${entry
+            ? entry.name
             : this.hass.localize(
                 "ui.panel.config.area_registry.editor.default_name"
               )}
@@ -65,17 +66,23 @@ class DialogAreaDetail extends LitElement {
               `
             : ""}
           <div class="form">
+            ${entry
+              ? html`
+                  <div>Area ID: ${entry.area_id}</div>
+                `
+              : ""}
+
             <paper-input
               .value=${this._name}
               @value-changed=${this._nameChanged}
-              .label=${this.hass.localize("ui.dialogs.more_info_settings.name")}
+              label="Name"
               error-message="Name is required"
               .invalid=${nameInvalid}
             ></paper-input>
           </div>
         </paper-dialog-scrollable>
         <div class="paper-dialog-buttons">
-          ${this._params.entry
+          ${entry
             ? html`
                 <mwc-button
                   class="warning"
@@ -92,7 +99,7 @@ class DialogAreaDetail extends LitElement {
             @click="${this._updateEntry}"
             .disabled=${nameInvalid || this._submitting}
           >
-            ${this._params.entry
+            ${entry
               ? this.hass.localize(
                   "ui.panel.config.area_registry.editor.update"
                 )
@@ -101,7 +108,7 @@ class DialogAreaDetail extends LitElement {
                 )}
           </mwc-button>
         </div>
-      </paper-dialog>
+      </ha-paper-dialog>
     `;
   }
 
@@ -150,7 +157,7 @@ class DialogAreaDetail extends LitElement {
     return [
       haStyleDialog,
       css`
-        paper-dialog {
+        ha-paper-dialog {
           min-width: 400px;
         }
         .form {

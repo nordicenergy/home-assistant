@@ -1,16 +1,17 @@
 import "@polymer/iron-flex-layout/iron-flex-layout-classes";
-import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
 import "@polymer/paper-item/paper-item";
 import "@polymer/paper-listbox/paper-listbox";
+
 import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
 import "../../../components/ha-attributes";
 import "../../../components/ha-color-picker";
 import "../../../components/ha-labeled-slider";
+import "../../../components/ha-paper-dropdown-menu";
 
 import featureClassNames from "../../../common/entity/feature_class_names";
-import EventsMixin from "../../../mixins/events-mixin";
+import { EventsMixin } from "../../../mixins/events-mixin";
 import LocalizeMixin from "../../../mixins/localize-mixin";
 
 const FEATURE_CLASS_NAMES = {
@@ -177,20 +178,26 @@ class MoreInfoLight extends LocalizeMixin(EventsMixin(PolymerElement)) {
         </div>
 
         <div class="control effect_list">
-          <paper-dropdown-menu
+          <ha-paper-dropdown-menu
             label-float=""
             dynamic-align=""
             label="[[localize('ui.card.light.effect')]]"
           >
-            <paper-listbox slot="dropdown-content" selected="{{effectIndex}}">
+            <paper-listbox
+              slot="dropdown-content"
+              selected="[[stateObj.attributes.effect]]"
+              on-selected-changed="effectChanged"
+              attr-for-selected="item-name"
+            >
+              <paper-item item-name$="stop">stop</paper-item>
               <template
                 is="dom-repeat"
                 items="[[stateObj.attributes.effect_list]]"
               >
-                <paper-item>[[item]]</paper-item>
+                <paper-item item-name$="[[item]]">[[item]]</paper-item>
               </template>
             </paper-listbox>
-          </paper-dropdown-menu>
+          </ha-paper-dropdown-menu>
         </div>
 
         <ha-attributes
@@ -210,12 +217,6 @@ class MoreInfoLight extends LocalizeMixin(EventsMixin(PolymerElement)) {
       stateObj: {
         type: Object,
         observer: "stateObjChanged",
-      },
-
-      effectIndex: {
-        type: Number,
-        value: -1,
-        observer: "effectChanged",
       },
 
       brightnessSliderValue: {
@@ -264,13 +265,6 @@ class MoreInfoLight extends LocalizeMixin(EventsMixin(PolymerElement)) {
           s: newVal.attributes.hs_color[1] / 100,
         };
       }
-      if (newVal.attributes.effect_list) {
-        props.effectIndex = newVal.attributes.effect_list.indexOf(
-          newVal.attributes.effect
-        );
-      } else {
-        props.effectIndex = -1;
-      }
     }
 
     this.setProperties(props);
@@ -293,17 +287,15 @@ class MoreInfoLight extends LocalizeMixin(EventsMixin(PolymerElement)) {
     return classes.join(" ");
   }
 
-  effectChanged(effectIndex) {
-    var effectInput;
-    // Selected Option will transition to '' before transitioning to new value
-    if (effectIndex === "" || effectIndex === -1) return;
+  effectChanged(ev) {
+    var oldVal = this.stateObj.attributes.effect;
+    var newVal = ev.detail.value;
 
-    effectInput = this.stateObj.attributes.effect_list[effectIndex];
-    if (effectInput === this.stateObj.attributes.effect) return;
+    if (!newVal || oldVal === newVal) return;
 
     this.hass.callService("light", "turn_on", {
       entity_id: this.stateObj.entity_id,
-      effect: effectInput,
+      effect: newVal,
     });
   }
 

@@ -4,12 +4,12 @@ import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
 import "../../../src/components/buttons/ha-call-api-button";
-import EventsMixin from "../../../src/mixins/events-mixin";
+import { EventsMixin } from "../../../src/mixins/events-mixin";
 
 class HassioSupervisorInfo extends EventsMixin(PolymerElement) {
   static get template() {
     return html`
-      <style include="iron-flex ha-style">
+      <style>
         paper-card {
           display: inline-block;
           width: 400px;

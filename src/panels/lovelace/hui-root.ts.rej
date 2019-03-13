@@ -1,0 +1,14 @@
+diff a/src/panels/lovelace/hui-root.ts b/src/panels/lovelace/hui-root.ts	(rejected hunks)
+@@ -584,6 +584,6 @@ class HUIRoot extends LitElement {
+-      import(/* webpackChunkName: "hui-unused-entities" */ "./editor/unused-entities/hui-unused-entities").then(
+-        () => {
+-          unusedEntities.hass = this.hass!;
+-          unusedEntities.lovelace = this.lovelace!;
+-        }
+-      );
++      import(
++        /* webpackChunkName: "hui-unused-entities" */ "./editor/unused-entities/hui-unused-entities"
++      ).then(() => {
++        unusedEntities.hass = this.hass!;
++        unusedEntities.lovelace = this.lovelace!;
++      });

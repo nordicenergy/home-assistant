@@ -15,31 +15,27 @@ import "../../map/ha-entity-marker";
 
 import {
   setupLeafletMap,
+  createTileLayer,
   LeafletModuleType,
 } from "../../../common/dom/setup-leaflet-map";
 import computeStateDomain from "../../../common/entity/compute_state_domain";
 import computeStateName from "../../../common/entity/compute_state_name";
-import debounce from "../../../common/util/debounce";
+import { debounce } from "../../../common/util/debounce";
 import parseAspectRatio from "../../../common/util/parse-aspect-ratio";
-import { HomeAssistant } from "../../../types";
 import computeDomain from "../../../common/entity/compute_domain";
+
+import { HomeAssistant } from "../../../types";
 import { LovelaceCard } from "../types";
-import { LovelaceCardConfig } from "../../../data/lovelace";
 import { EntityConfig } from "../entity-rows/types";
 import { processConfigEntities } from "../common/process-config-entities";
-
-export interface MapCardConfig extends LovelaceCardConfig {
-  title: string;
-  aspect_ratio: string;
-  default_zoom?: number;
-  entities?: Array<EntityConfig | string>;
-  geo_location_sources?: string[];
-}
+import { MapCardConfig } from "./types";
 
 @customElement("hui-map-card")
 class HuiMapCard extends LitElement implements LovelaceCard {
   public static async getConfigElement() {
-    await import(/* webpackChunkName: "hui-map-card-editor" */ "../editor/config-elements/hui-map-card-editor");
+    await import(
+      /* webpackChunkName: "hui-map-card-editor" */ "../editor/config-elements/hui-map-card-editor"
+    );
     return document.createElement("hui-map-card-editor");
   }
 
@@ -155,6 +151,27 @@ class HuiMapCard extends LitElement implements LovelaceCard {
     `;
   }
 
+  protected shouldUpdate(changedProps) {
+    if (!changedProps.has("hass") || changedProps.size > 1) {
+      return true;
+    }
+
+    const oldHass = changedProps.get("hass") as HomeAssistant | undefined;
+
+    if (!oldHass || !this._configEntities) {
+      return true;
+    }
+
+    // Check if any state has changed
+    for (const entity of this._configEntities) {
+      if (oldHass.states[entity.entity] !== this.hass!.states[entity.entity]) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   protected firstUpdated(changedProps: PropertyValues): void {
     super.firstUpdated(changedProps);
     this.loadMap();
@@ -180,6 +197,12 @@ class HuiMapCard extends LitElement implements LovelaceCard {
     if (changedProps.has("hass")) {
       this._drawEntities();
     }
+    if (
+      changedProps.has("_config") &&
+      changedProps.get("_config") !== undefined
+    ) {
+      this.updateMap(changedProps.get("_config") as MapCardConfig);
+    }
   }
 
   private get _mapEl(): HTMLDivElement {
@@ -187,9 +210,32 @@ class HuiMapCard extends LitElement implements LovelaceCard {
   }
 
   private async loadMap(): Promise<void> {
-    [this._leafletMap, this.Leaflet] = await setupLeafletMap(this._mapEl);
+    [this._leafletMap, this.Leaflet] = await setupLeafletMap(
+      this._mapEl,
+      this._config !== undefined ? this._config.dark_mode === true : false
+    );
     this._drawEntities();
     this._leafletMap.invalidateSize();
+    this._fitMap();
+  }
+
+  private updateMap(oldConfig: MapCardConfig): void {
+    const map = this._leafletMap;
+    const config = this._config;
+    const Leaflet = this.Leaflet;
+    if (!map || !config || !Leaflet) {
+      return;
+    }
+    if (config.dark_mode !== oldConfig.dark_mode) {
+      createTileLayer(Leaflet, config.dark_mode === true).addTo(map);
+    }
+    if (
+      config.entities !== oldConfig.entities ||
+      config.geo_location_sources !== oldConfig.geo_location_sources
+    ) {
+      this._drawEntities();
+    }
+    map.invalidateSize();
     this._fitMap();
   }
 

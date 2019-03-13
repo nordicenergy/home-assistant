@@ -1,0 +1,6 @@
+diff a/src/common/dom/setup-leaflet-map.ts b/src/common/dom/setup-leaflet-map.ts	(rejected hunks)
+@@ -14 +14,3 @@ export const setupLeafletMap = async (
+-  const Leaflet = (await import(/* webpackChunkName: "leaflet" */ "leaflet")) as LeafletModuleType;
++  const Leaflet = (await import(
++    /* webpackChunkName: "leaflet" */ "leaflet"
++  )) as LeafletModuleType;

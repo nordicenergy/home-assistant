@@ -1,0 +1,6 @@
+diff a/src/dialogs/domain-toggler/show-dialog-domain-toggler.ts b/src/dialogs/domain-toggler/show-dialog-domain-toggler.ts	(rejected hunks)
+@@ -9 +9,3 @@ export const loadDomainTogglerDialog = () =>
+-  import(/* webpackChunkName: "dialog-domain-toggler" */ "./dialog-domain-toggler");
++  import(
++    /* webpackChunkName: "dialog-domain-toggler" */ "./dialog-domain-toggler"
++  );

@@ -1,0 +1,21 @@
+diff a/src/panels/lovelace/cards/hui-thermostat-card.ts b/src/panels/lovelace/cards/hui-thermostat-card.ts	(rejected hunks)
+@@ -57 +57,3 @@ export class HuiThermostatCard extends LitElement implements LovelaceCard {
+-    await import(/* webpackChunkName: "hui-thermostat-card-editor" */ "../editor/config-elements/hui-thermostat-card-editor");
++    await import(
++      /* webpackChunkName: "hui-thermostat-card-editor" */ "../editor/config-elements/hui-thermostat-card-editor"
++    );
+@@ -154,3 +156 @@ export class HuiThermostatCard extends LitElement implements LovelaceCard {
+-                      `state_attributes.climate.hvac_action.${
+-                        stateObj.attributes.hvac_action
+-                      }`
++                      `state_attributes.climate.hvac_action.${stateObj.attributes.hvac_action}`
+@@ -164,3 +164 @@ export class HuiThermostatCard extends LitElement implements LovelaceCard {
+-                        `state_attributes.climate.preset_mode.${
+-                          stateObj.attributes.preset_mode
+-                        }`
++                        `state_attributes.climate.preset_mode.${stateObj.attributes.preset_mode}`
+@@ -300,3 +298 @@ export class HuiThermostatCard extends LitElement implements LovelaceCard {
+-      sliderValue = `${stateObj.attributes.target_temp_low}, ${
+-        stateObj.attributes.target_temp_high
+-      }`;
++      sliderValue = `${stateObj.attributes.target_temp_low}, ${stateObj.attributes.target_temp_high}`;

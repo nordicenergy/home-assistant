@@ -1,0 +1,42 @@
+diff a/src/fake_data/provide_hass.ts b/src/fake_data/provide_hass.ts	(rejected hunks)
+@@ -77,9 +77,15 @@ export const provideHass = (
+-  mockAPI(new RegExp("states/.+"), (
+-    // @ts-ignore
+-    method,
+-    path,
+-    parameters
+-  ) => {
+-    const [domain, objectId] = path.substr(7).split(".", 2);
+-    if (!domain || !objectId) {
+-      return;
++  mockAPI(
++    new RegExp("states/.+"),
++    (
++      // @ts-ignore
++      method,
++      path,
++      parameters
++    ) => {
++      const [domain, objectId] = path.substr(7).split(".", 2);
++      if (!domain || !objectId) {
++        return;
++      }
++      addEntities(
++        getEntity(domain, objectId, parameters.state, parameters.attributes)
++      );
+@@ -87,4 +93 @@ export const provideHass = (
+-    addEntities(
+-      getEntity(domain, objectId, parameters.state, parameters.attributes)
+-    );
+-  });
++  );
+@@ -120,3 +123 @@ export const provideHass = (
+-              message: `WS Command ${
+-                msg.type
+-              } is not implemented in provide_hass.`,
++              message: `WS Command ${msg.type} is not implemented in provide_hass.`,
+@@ -131,3 +132 @@ export const provideHass = (
+-              message: `WS Command ${
+-                msg.type
+-              } is not implemented in provide_hass.`,
++              message: `WS Command ${msg.type} is not implemented in provide_hass.`,

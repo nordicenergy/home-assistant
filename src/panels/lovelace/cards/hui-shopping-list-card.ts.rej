@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/cards/hui-shopping-list-card.ts b/src/panels/lovelace/cards/hui-shopping-list-card.ts	(rejected hunks)
+@@ -31 +31,3 @@ class HuiShoppingListCard extends LitElement implements LovelaceCard {
+-    await import(/* webpackChunkName: "hui-shopping-list-editor" */ "../editor/config-elements/hui-shopping-list-editor");
++    await import(
++      /* webpackChunkName: "hui-shopping-list-editor" */ "../editor/config-elements/hui-shopping-list-editor"
++    );

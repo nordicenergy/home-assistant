@@ -6,6 +6,7 @@ import {
   CSSResult,
   css,
   customElement,
+  PropertyValues,
 } from "lit-element";
 
 import "../components/hui-generic-entity-row";
@@ -14,6 +15,7 @@ import "../components/hui-warning";
 
 import { HomeAssistant } from "../../../types";
 import { EntityRow, EntityConfig } from "./types";
+import { hasConfigOrEntityChanged } from "../common/has-changed";
 
 import computeStateDisplay from "../../../common/entity/compute_state_display";
 
@@ -32,6 +34,10 @@ class HuiSensorEntityRow extends LitElement implements EntityRow {
       throw new Error("Configuration error");
     }
     this._config = config;
+  }
+
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    return hasConfigOrEntityChanged(this, changedProps);
   }
 
   protected render(): TemplateResult | void {
@@ -56,7 +62,8 @@ class HuiSensorEntityRow extends LitElement implements EntityRow {
     return html`
       <hui-generic-entity-row .hass="${this.hass}" .config="${this._config}">
         <div>
-          ${stateObj.attributes.device_class === "timestamp"
+          ${stateObj.attributes.device_class === "timestamp" &&
+          stateObj.state !== "unavailable"
             ? html`
                 <hui-timestamp-display
                   .hass="${this.hass}"

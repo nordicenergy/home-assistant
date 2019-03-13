@@ -1,0 +1,6 @@
+diff a/src/panels/config/users/ha-config-user-picker.js b/src/panels/config/users/ha-config-user-picker.js	(rejected hunks)
+@@ -114 +114,3 @@ class HaUserPicker extends EventsMixin(
+-          import(/* webpackChunkName: "ha-dialog-add-user" */ "./ha-dialog-add-user"),
++          import(
++            /* webpackChunkName: "ha-dialog-add-user" */ "./ha-dialog-add-user"
++          ),

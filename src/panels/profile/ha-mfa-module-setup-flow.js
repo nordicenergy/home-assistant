@@ -1,15 +1,15 @@
 import "@material/mwc-button";
 import "@polymer/paper-dialog-scrollable/paper-dialog-scrollable";
-import "@polymer/paper-dialog/paper-dialog";
 import "@polymer/paper-spinner/paper-spinner";
 import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
+import "../../components/dialog/ha-paper-dialog";
 import "../../components/ha-form";
 import "../../components/ha-markdown";
 import "../../resources/ha-style";
 
-import EventsMixin from "../../mixins/events-mixin";
+import { EventsMixin } from "../../mixins/events-mixin";
 import LocalizeMixin from "../../mixins/localize-mixin";
 
 let instance = 0;
@@ -25,7 +25,7 @@ class HaMfaModuleSetupFlow extends LocalizeMixin(EventsMixin(PolymerElement)) {
         .error {
           color: red;
         }
-        paper-dialog {
+        ha-paper-dialog {
           max-width: 500px;
         }
         ha-markdown img:first-child:last-child,
@@ -44,7 +44,7 @@ class HaMfaModuleSetupFlow extends LocalizeMixin(EventsMixin(PolymerElement)) {
           margin-right: 16px;
         }
       </style>
-      <paper-dialog
+      <ha-paper-dialog
         id="dialog"
         with-backdrop=""
         opened="{{_opened}}"
@@ -73,6 +73,7 @@ class HaMfaModuleSetupFlow extends LocalizeMixin(EventsMixin(PolymerElement)) {
           <template is="dom-if" if="[[_step]]">
             <template is="dom-if" if="[[_equals(_step.type, 'abort')]]">
               <ha-markdown
+                allowsvg
                 content="[[_computeStepAbortedReason(localize, _step)]]"
               ></ha-markdown>
             </template>
@@ -90,8 +91,8 @@ class HaMfaModuleSetupFlow extends LocalizeMixin(EventsMixin(PolymerElement)) {
                 if="[[_computeStepDescription(localize, _step)]]"
               >
                 <ha-markdown
+                  allowsvg
                   content="[[_computeStepDescription(localize, _step)]]"
-                  allow-svg
                 ></ha-markdown>
               </template>
 
@@ -129,7 +130,7 @@ class HaMfaModuleSetupFlow extends LocalizeMixin(EventsMixin(PolymerElement)) {
             </template>
           </template>
         </div>
-      </paper-dialog>
+      </ha-paper-dialog>
     `;
   }
 
@@ -286,9 +287,7 @@ class HaMfaModuleSetupFlow extends LocalizeMixin(EventsMixin(PolymerElement)) {
 
   _computeStepDescription(localize, step) {
     const args = [
-      `component.auth.mfa_setup.${step.handler}.step.${
-        step.step_id
-      }.description`,
+      `component.auth.mfa_setup.${step.handler}.step.${step.step_id}.description`,
     ];
     const placeholders = step.description_placeholders || {};
     Object.keys(placeholders).forEach((key) => {
@@ -302,9 +301,7 @@ class HaMfaModuleSetupFlow extends LocalizeMixin(EventsMixin(PolymerElement)) {
     // Returns a callback for ha-form to calculate labels per schema object
     return (schema) =>
       localize(
-        `component.auth.mfa_setup.${step.handler}.step.${step.step_id}.data.${
-          schema.name
-        }`
+        `component.auth.mfa_setup.${step.handler}.step.${step.step_id}.data.${schema.name}`
       ) || schema.name;
   }
 

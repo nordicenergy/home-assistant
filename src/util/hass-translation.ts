@@ -1,6 +1,6 @@
 import { translationMetadata } from "../resources/translations-metadata";
-import { fetchFrontendUserData } from "../data/frontend";
 import { HomeAssistant } from "../types";
+import { fetchTranslationPreferences } from "../data/translation";
 
 const STORAGE = window.localStorage || {};
 
@@ -43,7 +43,7 @@ function findAvailableLanguage(language: string) {
  * Get user selected language from backend
  */
 export async function getUserLanguage(hass: HomeAssistant) {
-  const result = await fetchFrontendUserData(hass, "language");
+  const result = await fetchTranslationPreferences(hass);
   const language = result ? result.language : null;
   if (language) {
     const availableLanguage = findAvailableLanguage(language);
@@ -61,9 +61,12 @@ export function getLocalLanguage() {
   let language = null;
   if (STORAGE.selectedLanguage) {
     try {
-      language = findAvailableLanguage(JSON.parse(STORAGE.selectedLanguage));
-      if (language) {
-        return language;
+      const stored = JSON.parse(STORAGE.selectedLanguage);
+      if (stored) {
+        language = findAvailableLanguage(stored);
+        if (language) {
+          return language;
+        }
       }
     } catch (e) {
       // Ignore parsing error.
@@ -102,9 +105,7 @@ async function fetchTranslation(fingerprint) {
   });
   if (!response.ok) {
     throw new Error(
-      `Fail to fetch translation ${fingerprint}: HTTP response status is ${
-        response.status
-      }`
+      `Fail to fetch translation ${fingerprint}: HTTP response status is ${response.status}`
     );
   }
   return response.json();

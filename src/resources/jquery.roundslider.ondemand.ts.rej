@@ -1,0 +1,6 @@
+diff a/src/resources/jquery.roundslider.ondemand.ts b/src/resources/jquery.roundslider.ondemand.ts	(rejected hunks)
+@@ -12 +12,3 @@ export const loadRoundslider = async (): Promise<LoadedRoundSlider> => {
+-    loaded = import(/* webpackChunkName: "jquery-roundslider" */ "./jquery.roundslider");
++    loaded = import(
++      /* webpackChunkName: "jquery-roundslider" */ "./jquery.roundslider"
++    );

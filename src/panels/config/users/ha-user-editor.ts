@@ -23,6 +23,7 @@ import {
   SYSTEM_GROUP_ID_USER,
   SYSTEM_GROUP_ID_ADMIN,
 } from "../../../data/user";
+import { showSaveSuccessToast } from "../../../util/toast-saved-success";
 
 declare global {
   interface HASSDomEvents {
@@ -150,6 +151,7 @@ class HaUserEditor extends LitElement {
       await updateUser(this.hass!, this.user!.id, {
         group_ids: [newGroup],
       });
+      showSaveSuccessToast(this, this.hass!);
       fireEvent(this, "reload-users");
     } catch (err) {
       alert(`Group update failed: ${err.message}`);
@@ -176,22 +178,14 @@ class HaUserEditor extends LitElement {
     return [
       haStyle,
       css`
+        .card-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
         ha-card {
-          display: block;
           max-width: 600px;
           margin: 0 auto 16px;
-        }
-        ha-card:first-child {
-          margin-top: 16px;
-        }
-        ha-card:last-child {
-          margin-bottom: 16px;
-        }
-        .card-content {
-          padding: 0 16px 16px;
-        }
-        .card-actions {
-          padding: 0 8px;
         }
         hass-subpage ha-card:first-of-type {
           direction: ltr;

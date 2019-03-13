@@ -1,0 +1,6 @@
+diff a/src/panels/config/cloud/dialog-manage-cloudhook/show-dialog-manage-cloudhook.ts b/src/panels/config/cloud/dialog-manage-cloudhook/show-dialog-manage-cloudhook.ts	(rejected hunks)
+@@ -18 +18,3 @@ export const showManageCloudhookDialog = (
+-      import(/* webpackChunkName: "cloud-webhook-manage-dialog" */ "./dialog-manage-cloudhook"),
++      import(
++        /* webpackChunkName: "cloud-webhook-manage-dialog" */ "./dialog-manage-cloudhook"
++      ),

@@ -18,6 +18,7 @@ export const haStyle = css`
   }
 
   app-toolbar ha-menu-button + [main-title],
+  app-toolbar ha-paper-icon-button-arrow-prev + [main-title],
   app-toolbar paper-icon-button + [main-title] {
     margin-left: 24px;
   }
@@ -71,7 +72,8 @@ export const haStyleDialog = css`
   }
 
   @media all and (max-width: 450px), all and (max-height: 500px) {
-    paper-dialog {
+    paper-dialog,
+    ha-paper-dialog {
       margin: 0;
       width: 100% !important;
       max-height: calc(100% - 64px);

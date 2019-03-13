@@ -1,0 +1,6 @@
+diff a/src/state/disconnect-toast-mixin.ts b/src/state/disconnect-toast-mixin.ts	(rejected hunks)
+@@ -10 +10,3 @@ export default (superClass: Constructor<LitElement & HassBaseEl>) =>
+-      import(/* webpackChunkName: "notification-manager" */ "../managers/notification-manager");
++      import(
++        /* webpackChunkName: "notification-manager" */ "../managers/notification-manager"
++      );

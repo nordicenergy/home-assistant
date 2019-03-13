@@ -1,0 +1,6 @@
+diff a/src/panels/config/automation/ha-automation-picker.ts b/src/panels/config/automation/ha-automation-picker.ts	(rejected hunks)
+@@ -109,3 +109 @@ class HaAutomationPicker extends LitElement {
+-                                ? `/config/automation/edit/${
+-                                    automation.attributes.id
+-                                  }`
++                                ? `/config/automation/edit/${automation.attributes.id}`

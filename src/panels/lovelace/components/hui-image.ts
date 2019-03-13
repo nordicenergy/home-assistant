@@ -14,11 +14,10 @@ import {
   query,
   customElement,
 } from "lit-element";
-import { HomeAssistant } from "../../../types";
+import { HomeAssistant, CameraEntity } from "../../../types";
 import { styleMap } from "lit-html/directives/style-map";
 import { classMap } from "lit-html/directives/class-map";
-import { b64toBlob } from "../../../common/file/b64-to-blob";
-import { fetchThumbnail } from "../../../data/camera";
+import { fetchThumbnailUrlWithCache } from "../../../data/camera";
 
 const UPDATE_INTERVAL = 10000;
 const DEFAULT_FILTER = "grayscale(100%)";
@@ -28,7 +27,7 @@ export interface StateSpecificConfig {
 }
 
 @customElement("hui-image")
-class HuiImage extends LitElement {
+export class HuiImage extends LitElement {
   @property() public hass?: HomeAssistant;
 
   @property() public entity?: string;
@@ -38,6 +37,8 @@ class HuiImage extends LitElement {
   @property() public stateImage?: StateSpecificConfig;
 
   @property() public cameraImage?: string;
+
+  @property() public cameraView?: "live" | "auto";
 
   @property() public aspectRatio?: string;
 
@@ -60,7 +61,9 @@ class HuiImage extends LitElement {
   public connectedCallback(): void {
     super.connectedCallback();
     this._attached = true;
-    this._startUpdateCameraInterval();
+    if (this.cameraImage && this.cameraView !== "live") {
+      this._startUpdateCameraInterval();
+    }
   }
 
   public disconnectedCallback(): void {
@@ -77,11 +80,17 @@ class HuiImage extends LitElement {
 
     // Figure out image source to use
     let imageSrc: string | undefined;
+    let cameraObj: CameraEntity | undefined;
     // Track if we are we using a fallback image, used for filter.
     let imageFallback = !this.stateImage;
 
     if (this.cameraImage) {
-      imageSrc = this._cameraImageSrc;
+      if (this.cameraView === "live") {
+        cameraObj =
+          this.hass && (this.hass.states[this.cameraImage] as CameraEntity);
+      } else {
+        imageSrc = this._cameraImageSrc;
+      }
     } else if (this.stateImage) {
       const stateImage = this.stateImage[state];
 
@@ -93,6 +102,10 @@ class HuiImage extends LitElement {
       }
     } else {
       imageSrc = this.image;
+    }
+
+    if (imageSrc) {
+      imageSrc = this.hass!.hassUrl(imageSrc);
     }
 
     // Figure out filter to use
@@ -119,16 +132,25 @@ class HuiImage extends LitElement {
           ratio: Boolean(ratio && ratio.w > 0 && ratio.h > 0),
         })}
       >
-        <img
-          id="image"
-          src=${imageSrc}
-          @error=${this._onImageError}
-          @load=${this._onImageLoad}
-          style=${styleMap({
-            filter,
-            display: this._loadError ? "none" : "block",
-          })}
-        />
+        ${this.cameraImage && this.cameraView === "live"
+          ? html`
+              <ha-camera-stream
+                .hass="${this.hass}"
+                .stateObj="${cameraObj}"
+              ></ha-camera-stream>
+            `
+          : html`
+              <img
+                id="image"
+                src=${imageSrc}
+                @error=${this._onImageError}
+                @load=${this._onImageLoad}
+                style=${styleMap({
+                  filter,
+                  display: this._loadError ? "none" : "block",
+                })}
+              />
+            `}
         <div
           id="brokenImage"
           style=${styleMap({
@@ -141,7 +163,7 @@ class HuiImage extends LitElement {
   }
 
   protected updated(changedProps: PropertyValues): void {
-    if (changedProps.has("cameraImage")) {
+    if (changedProps.has("cameraImage") && this.cameraView !== "live") {
       this._updateCameraImageSrc();
       this._startUpdateCameraInterval();
       return;
@@ -178,21 +200,20 @@ class HuiImage extends LitElement {
     if (!this.hass || !this.cameraImage) {
       return;
     }
-    try {
-      const { content_type: contentType, content } = await fetchThumbnail(
-        this.hass,
-        this.cameraImage
-      );
-      if (this._cameraImageSrc) {
-        URL.revokeObjectURL(this._cameraImageSrc);
-      }
-      this._cameraImageSrc = URL.createObjectURL(
-        b64toBlob(content, contentType)
-      );
-      this._onImageLoad();
-    } catch (err) {
+
+    const cameraState = this.hass.states[this.cameraImage] as
+      | CameraEntity
+      | undefined;
+
+    if (!cameraState) {
       this._onImageError();
+      return;
     }
+
+    this._cameraImageSrc = await fetchThumbnailUrlWithCache(
+      this.hass,
+      this.cameraImage
+    );
   }
 
   static get styles(): CSSResult {

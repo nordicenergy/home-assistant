@@ -8,6 +8,10 @@ export interface ZHAEntityReference extends HassEntity {
 export interface ZHADevice {
   name: string;
   ieee: string;
+  nwk: string;
+  lqi: string;
+  rssi: string;
+  last_seen: string;
   manufacturer: string;
   model: string;
   quirk_applied: boolean;
@@ -15,7 +19,9 @@ export interface ZHADevice {
   entities: ZHAEntityReference[];
   manufacturer_code: number;
   device_reg_id: string;
-  user_given_name: string;
+  user_given_name?: string;
+  power_source?: string;
+  area_id?: string;
 }
 
 export interface Attribute {
@@ -42,7 +48,7 @@ export interface ReadAttributeServiceData {
   cluster_id: number;
   cluster_type: string;
   attribute: number;
-  manufacturer: number;
+  manufacturer?: number;
 }
 
 export const reconfigureNode = (
@@ -72,6 +78,15 @@ export const fetchAttributesForCluster = (
 export const fetchDevices = (hass: HomeAssistant): Promise<ZHADevice[]> =>
   hass.callWS({
     type: "zha/devices",
+  });
+
+export const fetchZHADevice = (
+  hass: HomeAssistant,
+  ieeeAddress: string
+): Promise<ZHADevice> =>
+  hass.callWS({
+    type: "zha/device",
+    ieee: ieeeAddress,
   });
 
 export const fetchBindableDevices = (

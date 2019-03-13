@@ -1,0 +1,6 @@
+diff a/src/state/notification-mixin.ts b/src/state/notification-mixin.ts	(rejected hunks)
+@@ -9 +9,3 @@ export default (superClass) =>
+-          import(/* webpackChunkName: "notification-manager" */ "../managers/notification-manager"),
++          import(
++            /* webpackChunkName: "notification-manager" */ "../managers/notification-manager"
++          ),

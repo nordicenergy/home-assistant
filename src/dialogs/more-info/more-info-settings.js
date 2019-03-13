@@ -5,12 +5,11 @@ import "@polymer/paper-input/paper-input";
 import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
-import EventsMixin from "../../mixins/events-mixin";
+import { EventsMixin } from "../../mixins/events-mixin";
 import LocalizeMixin from "../../mixins/localize-mixin";
 
 import computeStateName from "../../common/entity/compute_state_name";
 import computeDomain from "../../common/entity/compute_domain";
-import isComponentLoaded from "../../common/config/is_component_loaded";
 import { updateEntityRegistryEntry } from "../../data/entity_registry";
 
 import "../../components/ha-paper-icon-button-arrow-prev";
@@ -74,11 +73,6 @@ class MoreInfoSettings extends LocalizeMixin(EventsMixin(PolymerElement)) {
       hass: Object,
       stateObj: Object,
 
-      _componentLoaded: {
-        type: Boolean,
-        computed: "_computeComponentLoaded(hass)",
-      },
-
       registryInfo: {
         type: Object,
         observer: "_registryInfoChanged",
@@ -93,10 +87,6 @@ class MoreInfoSettings extends LocalizeMixin(EventsMixin(PolymerElement)) {
   _computeStateName(stateObj) {
     if (!stateObj) return "";
     return computeStateName(stateObj);
-  }
-
-  _computeComponentLoaded(hass) {
-    return isComponentLoaded(hass, "config.entity_registry");
   }
 
   _computeInvalid(entityId) {

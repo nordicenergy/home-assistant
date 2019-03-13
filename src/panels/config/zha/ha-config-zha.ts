@@ -1,26 +1,27 @@
-import "@polymer/app-layout/app-header/app-header";
-import "@polymer/app-layout/app-toolbar/app-toolbar";
+import "../../../components/ha-paper-icon-button-arrow-prev";
+import "../../../layouts/hass-subpage";
+import "./zha-binding";
+import "./zha-cluster-attributes";
+import "./zha-cluster-commands";
+import "./zha-network";
+import "./zha-node";
+import "@polymer/paper-icon-button/paper-icon-button";
+
 import {
+  CSSResult,
   html,
   LitElement,
   property,
   PropertyValues,
   TemplateResult,
-  CSSResult,
 } from "lit-element";
-import "@polymer/paper-icon-button/paper-icon-button";
+
 import { HASSDomEvent } from "../../../common/dom/fire_event";
-import { Cluster, ZHADevice, fetchBindableDevices } from "../../../data/zha";
-import "../../../layouts/ha-app-layout";
-import "../../../components/ha-paper-icon-button-arrow-prev";
+import { Cluster, fetchBindableDevices, ZHADevice } from "../../../data/zha";
 import { haStyle } from "../../../resources/styles";
 import { HomeAssistant } from "../../../types";
+import { sortZHADevices } from "./functions";
 import { ZHAClusterSelectedParams, ZHADeviceSelectedParams } from "./types";
-import "./zha-cluster-attributes";
-import "./zha-cluster-commands";
-import "./zha-network";
-import "./zha-node";
-import "./zha-binding";
 
 export class HaConfigZha extends LitElement {
   @property() public hass?: HomeAssistant;
@@ -38,16 +39,7 @@ export class HaConfigZha extends LitElement {
 
   protected render(): TemplateResult | void {
     return html`
-      <ha-app-layout>
-        <app-header slot="header">
-          <app-toolbar>
-            <ha-paper-icon-button-arrow-prev
-              @click="${this._onBackTapped}"
-            ></ha-paper-icon-button-arrow-prev>
-            <div main-title>Zigbee Home Automation</div>
-          </app-toolbar>
-        </app-header>
-
+      <hass-subpage header="Zigbee Home Automation">
         <zha-network
           .isWide="${this.isWide}"
           .hass="${this.hass}"
@@ -86,7 +78,7 @@ export class HaConfigZha extends LitElement {
               ></zha-binding-control>
             `
           : ""}
-      </ha-app-layout>
+      </hass-subpage>
     `;
   }
 
@@ -105,21 +97,14 @@ export class HaConfigZha extends LitElement {
 
   private async _fetchBindableDevices(): Promise<void> {
     if (this._selectedDevice && this.hass) {
-      this._bindableDevices = (await fetchBindableDevices(
-        this.hass,
-        this._selectedDevice!.ieee
-      )).sort((a, b) => {
-        return a.name.localeCompare(b.name);
-      });
+      this._bindableDevices = (
+        await fetchBindableDevices(this.hass, this._selectedDevice!.ieee)
+      ).sort(sortZHADevices);
     }
   }
 
   static get styles(): CSSResult[] {
     return [haStyle];
-  }
-
-  private _onBackTapped(): void {
-    history.back();
   }
 }
 

@@ -1,0 +1,8 @@
+diff a/src/panels/lovelace/common/load-resources.ts b/src/panels/lovelace/common/load-resources.ts	(rejected hunks)
+@@ -35,3 +35,3 @@ export const loadLovelaceResources = (
+-        import(/* webpackChunkName: "import-href-polyfill" */ "../../../resources/html-import/import-href").then(
+-          ({ importHref }) => importHref(normalizedUrl)
+-        );
++        import(
++          /* webpackChunkName: "import-href-polyfill" */ "../../../resources/html-import/import-href"
++        ).then(({ importHref }) => importHref(normalizedUrl));

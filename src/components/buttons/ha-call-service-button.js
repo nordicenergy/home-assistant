@@ -2,7 +2,7 @@ import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
 import "./ha-progress-button";
-import EventsMixin from "../../mixins/events-mixin";
+import { EventsMixin } from "../../mixins/events-mixin";
 
 /*
  * @appliesMixin EventsMixin
@@ -42,10 +42,17 @@ class HaCallServiceButton extends EventsMixin(PolymerElement) {
         type: Object,
         value: {},
       },
+
+      confirmation: {
+        type: String,
+      },
     };
   }
 
   buttonTapped() {
+    if (this.confirmation && !window.confirm(this.confirmation)) {
+      return;
+    }
     this.progress = true;
     var el = this;
     var eventData = {

@@ -1,0 +1,6 @@
+diff a/src/onboarding/onboarding-integrations.ts b/src/onboarding/onboarding-integrations.ts	(rejected hunks)
+@@ -127 +127,3 @@ class OnboardingIntegrations extends LitElement {
+-    import(/* webpackChunkName: "polyfill-web-animations-next" */ "web-animations-js/web-animations-next-lite.min");
++    import(
++      /* webpackChunkName: "polyfill-web-animations-next" */ "web-animations-js/web-animations-next-lite.min"
++    );

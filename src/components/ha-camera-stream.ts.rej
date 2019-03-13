@@ -1,0 +1,7 @@
+diff a/src/components/ha-camera-stream.ts b/src/components/ha-camera-stream.ts	(rejected hunks)
+@@ -125,2 +125,3 @@ class HaCameraStream extends LitElement {
+-    const Hls = ((await import(/* webpackChunkName: "hls.js" */ "hls.js")) as any)
+-      .default as HLSModule;
++    const Hls = ((await import(
++      /* webpackChunkName: "hls.js" */ "hls.js"
++    )) as any).default as HLSModule;

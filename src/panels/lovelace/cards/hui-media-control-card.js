@@ -2,19 +2,16 @@ import "../../../cards/ha-media_player-card";
 
 import LegacyWrapperCard from "./hui-legacy-wrapper-card";
 
-// should be interface when converted to TS
-export const Config = {
-  entity: "",
-};
-
 class HuiMediaControlCard extends LegacyWrapperCard {
   static async getConfigElement() {
-    await import(/* webpackChunkName: "hui-media-control-card-editor" */ "../editor/config-elements/hui-media-control-card-editor");
+    await import(
+      /* webpackChunkName: "hui-media-control-card-editor" */ "../editor/config-elements/hui-media-control-card-editor"
+    );
     return document.createElement("hui-media-control-card-editor");
   }
 
   static getStubConfig() {
-    return {};
+    return { entity: "" };
   }
 
   constructor() {

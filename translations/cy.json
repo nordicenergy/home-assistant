@@ -7,12 +7,8 @@
         "history": "Hanes",
         "mailbox": "Blwch post",
         "shopping_list": "Rhestr siopa",
-        "dev-services": "Gwasanaethau",
-        "dev-states": "Cyflerau",
-        "dev-events": "Digwyddiadau",
-        "dev-templates": "Templedi",
-        "dev-mqtt": "MQTT",
-        "dev-info": "Gwybodaeth"
+        "dev-info": "Gwybodaeth",
+        "developer_tools": "Offer datblygwr"
     },
     "state": {
         "default": {
@@ -267,7 +263,9 @@
     "state_badge": {
         "default": {
             "unknown": "?",
-            "unavailable": "off"
+            "unavailable": "off",
+            "error": "Gwall",
+            "entity_not_found": "Heb ganfod endid"
         },
         "alarm_control_panel": {
             "armed": "Arfogi",
@@ -297,6 +295,25 @@
                 "add_item": "Ychwanegu eitem",
                 "microphone_tip": "Tarwch y meicroffon ar dde uchaf a dweud \"Add candy to my shopping list\""
             },
+            "developer-tools": {
+                "tabs": {
+                    "services": {
+                        "title": "Gwasanaethau"
+                    },
+                    "states": {
+                        "title": "Cyflerau"
+                    },
+                    "events": {
+                        "title": "Digwyddiadau"
+                    },
+                    "templates": {
+                        "title": "Templedi"
+                    },
+                    "mqtt": {
+                        "title": "MQTT"
+                    }
+                }
+            },
             "history": {
                 "showing_entries": "Dangos cofnodion ar gyfer",
                 "period": "Cyfnod"
@@ -321,6 +338,23 @@
                         "core": {
                             "header": "Rheoli ffurfweddu a gweinydd",
                             "introduction": "Gellir newid ffurfweddiad eich proses ddiflas. Rydym yn gwybod. Bydd yr adran hon yn ceisio gwneud eich bywyd ychydig yn haws.",
+                            "core_config": {
+                                "edit_requires_storage": "Golygydd wedi'i analluogi oherwydd bod ffurfwedd wedi'i storio mewn 'configuration.yaml'.",
+                                "location_name": "Enw eich gosodiad Home Assistant",
+                                "latitude": "Lledred",
+                                "longitude": "Hydred",
+                                "elevation": "Uchder",
+                                "elevation_meters": "metrau",
+                                "time_zone": "Parth Amser",
+                                "unit_system": "System Uned",
+                                "unit_system_imperial": "Imperial",
+                                "unit_system_metric": "Metrig",
+                                "imperial_example": "Fahrenheit, pwys",
+                                "metric_example": "Celsius, cilogramau",
+                                "save_button": "Arbed"
+                            }
+                        },
+                        "server_control": {
                             "validation": {
                                 "heading": "Dilysu ffurfweddu",
                                 "introduction": "Dilyswch eich ffurfweddiad os gwnaethoch rai newidiadau yn ddiweddar i'ch cyfluniad ac rydych eisiau gwneud yn siŵr ei fod yn hollol ddilys",
@@ -530,7 +564,9 @@
                                 }
                             },
                             "learn_more": "Dysgu mwy am gamau gweithredu"
-                        }
+                        },
+                        "load_error_not_editable": "Dim ond awtomiadau yn 'automations. yaml' y gellir golygu.",
+                        "load_error_unknown": "Gwall wrth lwytho awtomeiddad ( {err_no} )."
                     }
                 },
                 "script": {
@@ -539,13 +575,61 @@
                 },
                 "zwave": {
                     "caption": "Z-Wave",
-                    "description": "Rheoli eich rhwydwaith Z-Wave"
+                    "description": "Rheoli eich rhwydwaith Z-Wave",
+                    "node_config": {
+                        "set_config_parameter": "Gosod Paramedr Ffurfweddu"
+                    }
+                },
+                "cloud": {
+                    "description_login": "Wedi mewngofnodi fel {email}",
+                    "description_not_login": "Heb fewngofnodi",
+                    "description_features": "Rheolaeth oddi cartref, integreiddio gyda Alexa a Google Assistant."
+                },
+                "integrations": {
+                    "caption": "Integreiddiadau",
+                    "description": "Rheoli dyfeisiau a gwasanaethau cysylltiedig",
+                    "discovered": "Darganfuwyd",
+                    "configured": "Wedi'i ffurfweddu",
+                    "new": "Sefydlu integreiddiad newydd",
+                    "configure": "Ffurfweddu",
+                    "none": "Dim byd wedi'i ffurfweddu eto.",
+                    "config_entry": {
+                        "no_devices": "Tydi'r integreiddad yma ddim efo dyfeisiadau.",
+                        "no_device": "Endidau heb ddyfeisiau",
+                        "delete_confirm": "A ydych yn siŵr bod chi eisiau dileu'r integreiddiad yma?",
+                        "restart_confirm": "Ailgychwyn Home Assistant i ddarfod dileu'r integreiddiad hwn",
+                        "manuf": "gan {manufacturer}",
+                        "via": "Cysylltiad drwy",
+                        "firmware": "Cadarnwedd: {version}",
+                        "device_unavailable": "Dyfais ddim ar gael",
+                        "entity_unavailable": "endid ar gael",
+                        "no_area": "Dim Ardal",
+                        "hub": "Cysylltiad drwy"
+                    },
+                    "config_flow": {
+                        "external_step": {
+                            "description": "Mae'r cam angen ichi ymweld â wefan allanol i'w lenwi.",
+                            "open_site": "Gwefan agored"
+                        }
+                    }
                 },
                 "zha": {
                     "caption": "ZHA",
                     "description": "Rheoli rhwydwaith awtomatiaeth cartref Zigbee",
                     "services": {
-                        "reconfigure": "Ad-drefnu ddyfais ZHA (gwella dyfais). Defnyddiwch hwn os ydych yn cael problemau gyda'r ddyfais. Os ydi'r ddyfais dan sylw wedi pweru á batri, plis gwnewch yn siwr bod o'n ddeffro a derbyn gorchmynion pan fyddwch yn defnyddio gwasanaeth hwn."
+                        "reconfigure": "Ad-drefnu ddyfais ZHA (gwella dyfais). Defnyddiwch hwn os ydych yn cael problemau gyda'r ddyfais. Os ydi'r ddyfais dan sylw wedi pweru á batri, plis gwnewch yn siwr bod o'n ddeffro a derbyn gorchmynion pan fyddwch yn defnyddio gwasanaeth hwn.",
+                        "updateDeviceName": "Gosod enw personol ar gyfer y ddyfais hon yn y gofrestrfa ddyfais.",
+                        "remove": "Tynnwch ddyfais o'r rhwydwaith ZigBee."
+                    },
+                    "device_card": {
+                        "device_name_placeholder": "Enw a roddwyd gan y defnyddiwr",
+                        "area_picker_label": "Ardal",
+                        "update_name_button": "Diweddaru Enw"
+                    },
+                    "add_device_page": {
+                        "header": "Awtomeiddiad Cartref Zigbee - Ychwanegwch Dyfeisiadau",
+                        "spinner": "Chwilio am ddyfeisiau ZHA Zigbee ...",
+                        "discovery_text": "Bydd dyfeisiau a ddarganfuwyd yn ymddangos yma. Dilynwch y cyfarwyddiadau ar gyfer eich dyfais \/ dyfaisiau a rhowch y ddyfais \/ dyfeisiau yn y modd paru."
                     }
                 },
                 "area_registry": {
@@ -555,7 +639,9 @@
                         "header": "Gofrestrfa ardal",
                         "introduction": "Defnyddir ardaloedd i drefnu lle mae dyfeisiau. Defnyddir y wybodaeth hon drwy gydol Home Assistant i helpu chi i drefnu eich rhyngwyneb, caniatadau ac integreiddio â systemau eraill.",
                         "introduction2": "I osod dyfeisiau mewn ardal, defnyddiwch y ddolen isod i fynd i'r dudalen integreiddio ac yna cliciwch ar integreiddiau wedi'i ffurfweddu i gyrraedd y cardiau dyfais.",
-                        "integrations_page": "Tudalen rhyngwynebu"
+                        "integrations_page": "Tudalen rhyngwynebu",
+                        "no_areas": "Edrych fel nad oes gennych ardaloedd eto!",
+                        "create_area": "CREU ARDAL"
                     },
                     "no_areas": "Edrych fel nad oes gennych ardaloedd eto!",
                     "create_area": "CREU ARDAL",
@@ -593,11 +679,6 @@
                         "device_tracker_pick": "Dewiswch dyfeis i'w dracio"
                     }
                 },
-                "integrations": {
-                    "config_entry": {
-                        "no_area": "Dim Ardal"
-                    }
-                },
                 "users": {
                     "editor": {
                         "caption": "Gweld defnyddiwr"
@@ -609,11 +690,68 @@
                         "password": "Cyfrinair",
                         "create": "Creu"
                     }
+                },
+                "server_control": {
+                    "section": {
+                        "validation": {
+                            "introduction": "Dilyswch eich ffurfweddiad os gwnaethoch rai newidiadau ffurfweddu yn ddiweddar ac rydych eisiau gwneud yn siŵr fod o'n ddilys",
+                            "check_config": "Gwirio config",
+                            "valid": "Ffurfweddiad dilys!",
+                            "invalid": "Ffurfweddiad annilys"
+                        },
+                        "reloading": {
+                            "heading": "Ffurfweddiad yn ail-lwytho",
+                            "introduction": "Gall rhai rhannau o Home Assistant ail-lwytho heb orfod ailgychwyn. Bydd taro ail-lwytho yn dadlwytho eu cyfluniad cyfredol a llwytho'r un newydd.",
+                            "core": "Ail-lwytho craidd",
+                            "group": "Ail-lwytho grwpiau",
+                            "automation": "Ail-lwytho awtomeiddiadau",
+                            "script": "Ail-lwytho sgriptiau"
+                        },
+                        "server_management": {
+                            "heading": "Rheoli gweinydd",
+                            "introduction": "Rheoli eich gweinydd Home Assistant.. o Home Assistant.",
+                            "restart": "Ailgychwyn",
+                            "stop": "Stopio"
+                        }
+                    }
                 }
             },
             "lovelace": {
+                "cards": {
+                    "shopping-list": {
+                        "checked_items": "Eitemau wedi ticio",
+                        "clear_items": "Clirio eitemau wedi ticio",
+                        "add_item": "Ychwanegu eitem"
+                    },
+                    "empty_state": {
+                        "title": "Croeso Gartref",
+                        "no_devices": "Mae'r dudalen hon yn eich galluogi i reoli'ch dyfeisiau, ond mae'n edrych fel nad oes gennych ddyfeisiau wedi eu sefydlu eto. Ewch i'r dudalen integreiddio i ddechrau.",
+                        "go_to_integrations_page": "Ewch i'r dudalen integreiddio."
+                    },
+                    "picture-elements": {
+                        "hold": "Disgwyl",
+                        "tap": "Tarwch:",
+                        "navigate_to": "Ewch i {location}",
+                        "toggle": "Toglo {enw}",
+                        "call_service": "Galw gwasanaeth {name}",
+                        "more_info": "Dangos mwy o wybodaeth: {name}"
+                    }
+                },
                 "editor": {
+                    "edit_card": {
+                        "header": "Ffurfweddu Cerdyn",
+                        "save": "Arbed",
+                        "toggle_editor": "Toglo Golygydd",
+                        "pick_card": "Dewiswch y cerdyn rydych eisiau ychwanegu",
+                        "add": "Ychwanegu Cerdyn",
+                        "edit": "Golygu",
+                        "delete": "Dileu",
+                        "move": "Symud"
+                    },
                     "migrate": {
+                        "header": "Ffurfweddiad anghydnaws",
+                        "para_no_id": "Tydi'r elfen yma ddim efo ID. Plís ychwanegwch ID i'r elfen yma yn 'ui-lovelace.yaml'.",
+                        "para_migrate": "Gall Home Assistant ychwanegu IDs i bob un o'ch cardiau ac edrychiadau yn awtomatig i chi wrth bwyso'r botwm 'Mudo ffurfweddiad'.",
                         "migrate": "Mudo ffurfweddiad"
                     },
                     "header": "Golygu rhyngwyneb defnyddiwr",
@@ -622,13 +760,6 @@
                         "add": "Ychwanegu golwg",
                         "edit": "Golygu golwg",
                         "delete": "Delete golwg"
-                    },
-                    "edit_card": {
-                        "pick_card": "Dewiswch y cerdyn rydych eisiau ychwanegu",
-                        "add": "Ychwanegu Cerdyn",
-                        "edit": "Golygu",
-                        "delete": "Dileu",
-                        "move": "Symud"
                     },
                     "save_config": {
                         "header": "Cymerwch reolaeth ar eich rhyngwyneb defnyddiwr Lovelace",
@@ -653,17 +784,15 @@
                     "help": "Help",
                     "refresh": "Adnewyddu"
                 },
-                "cards": {
-                    "empty_state": {
-                        "title": "Croeso Gartref",
-                        "no_devices": "Mae'r dudalen hon yn eich galluogi i reoli'ch dyfeisiau, ond mae'n edrych fel nad oes gennych ddyfeisiau wedi eu sefydlu eto. Ewch i'r dudalen integreiddio i ddechrau.",
-                        "go_to_integrations_page": "Ewch i'r dudalen integreiddio."
-                    }
-                },
                 "warning": {
-                    "entity_not_found": "Endid ddim ar gael",
-                    "entity_non_numeric": "Endid di-rhifol: {endid}"
-                }
+                    "entity_not_found": "Endid ddim ar gael: {entity}",
+                    "entity_non_numeric": "Endid di-rhifol: {entity}"
+                },
+                "changed_toast": {
+                    "message": "Diweddarwyd ffurfwedd Lovelace, hoffech adnewyddu?",
+                    "refresh": "Adnewyddu"
+                },
+                "reload_lovelace": "Ail-lwytho Lovelace"
             },
             "page-authorize": {
                 "form": {
@@ -693,11 +822,77 @@
                         }
                     }
                 }
+            },
+            "page-onboarding": {
+                "user": {
+                    "data": {
+                        "password_confirm": "Cadarnhewch y Cyfrinair"
+                    },
+                    "error": {
+                        "password_not_match": "Cyfrineiriau ddim yn cyfateb"
+                    }
+                },
+                "integration": {
+                    "intro": "Cynrychiolir dyfeisiau a gwasanaethau yn Home Assistant fel integreiddiadau. Gallwch eu gosod nawr, neu'n ddiweddarach o'r sgrin ffurfweddu.",
+                    "more_integrations": "Mwy",
+                    "finish": "Gorffen"
+                },
+                "core-config": {
+                    "intro": "Helo {name}, croeso i Home Assistant. Sut hoffech enwi eich tŷ?",
+                    "intro_location": "Hoffem wybod ble rydych chi'n byw. Bydd y wybodaeth yn helpu i arddangos gwybodaeth a sefydlu awtomeiddiadau haul. Tydi'r data byth yn cael ei rannu thu allan i'ch rhwydwaith.",
+                    "intro_location_detect": "Gallwn eich helpu i lenwi'r wybodaeth hon drwy wneud cais un-tro i wasanaeth allanol.",
+                    "location_name_default": "Hafan",
+                    "button_detect": "Canfod",
+                    "finish": "Nesaf"
+                }
+            },
+            "page-demo": {
+                "cards": {
+                    "demo": {
+                        "demo_by": "gan {name}",
+                        "next_demo": "Demo nesaf",
+                        "introduction": "Croeso adre! Rydych wedi cyrraedd demo Home Assistant lle rydym yn arddangos y UIs gorau a grewyd gan ein cymuned.",
+                        "learn_more": "Dysgwch fwy am Home Assistant"
+                    }
+                },
+                "config": {
+                    "arsaboo": {
+                        "names": {
+                            "upstairs": "I fyny'r grisiau",
+                            "family_room": "Ystafell Teulu",
+                            "kitchen": "Cegin",
+                            "patio": "Patio",
+                            "hallway": "Cyntedd",
+                            "master_bedroom": "Prif Ystafell Wely",
+                            "left": "Chwith",
+                            "right": "Dde",
+                            "mirror": "Drych"
+                        },
+                        "labels": {
+                            "lights": "Goleuadau",
+                            "information": "Gwybodaeth",
+                            "morning_commute": "Cymudo bore",
+                            "commute_home": "Cymudo i'r Cartref",
+                            "entertainment": "Adloniant",
+                            "activity": "Gweithgaredd",
+                            "hdmi_input": "Mewnbwn HDMI",
+                            "hdmi_switcher": "Newidydd HDMI",
+                            "volume": "Uchder",
+                            "total_tv_time": "Cyfanswm Amser Teledu",
+                            "turn_tv_off": "Diffodd y teledu",
+                            "air": "Aer"
+                        },
+                        "unit": {
+                            "watching": "gwylio",
+                            "minutes_abbr": "munud"
+                        }
+                    }
+                }
             }
         },
         "sidebar": {
             "log_out": "Allgofnodi",
-            "developer_tools": "Offer datblygwr"
+            "external_app_configuration": "Ffurfweddu App"
         },
         "common": {
             "loading": "Llwytho",
@@ -753,8 +948,20 @@
                 },
                 "forecast": "Rhagolwg"
             },
+            "water_heater": {
+                "currently": "Ar hyn o bryd",
+                "on_off": "Ar \/ i ffwrdd",
+                "target_temperature": "Tymheredd targed",
+                "operation": "Gweithredu",
+                "away_mode": "Dull i ffwrdd"
+            },
             "alarm_control_panel": {
+                "arm_night": "Larwm nos",
+                "armed_custom_bypass": "Ffordd osgoi personol",
                 "arm_custom_bypass": "Ffordd osgoi personol"
+            },
+            "climate": {
+                "preset_mode": "Rhagosodiad"
             }
         },
         "components": {
@@ -842,7 +1049,22 @@
                 "off": "Off",
                 "on": "Ar",
                 "auto": "Awto"
+            },
+            "preset_mode": {
+                "none": "Dim",
+                "eco": "Eco",
+                "away": "I ffwrdd",
+                "boost": "Cynydd",
+                "comfort": "Cyfforddus",
+                "home": "Cartref",
+                "sleep": "Cysgu",
+                "activity": "Gweithgaredd"
             }
         }
+    },
+    "groups": {
+        "system-admin": "Gweinyddwyr",
+        "system-users": "Defnyddwyr",
+        "system-read-only": "Defnyddwyr Darllen yn Unig"
     }
 }

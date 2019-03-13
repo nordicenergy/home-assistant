@@ -15,34 +15,21 @@ import "../components/hui-entities-toggle";
 import { fireEvent } from "../../../common/dom/fire_event";
 import { DOMAINS_HIDE_MORE_INFO } from "../../../common/const";
 import { HomeAssistant } from "../../../types";
-import { EntityConfig, EntityRow } from "../entity-rows/types";
+import { EntityRow } from "../entity-rows/types";
 import { LovelaceCard, LovelaceCardEditor } from "../types";
-import { LovelaceCardConfig } from "../../../data/lovelace";
 import { processConfigEntities } from "../common/process-config-entities";
 import { createRowElement } from "../common/create-row-element";
+import { EntitiesCardConfig, EntitiesCardEntityConfig } from "./types";
+
 import computeDomain from "../../../common/entity/compute_domain";
 import applyThemesOnElement from "../../../common/dom/apply_themes_on_element";
-
-export interface EntitiesCardEntityConfig extends EntityConfig {
-  type?: string;
-  secondary_info?: "entity-id" | "last-changed";
-  action_name?: string;
-  service?: string;
-  service_data?: object;
-  url?: string;
-}
-
-export interface EntitiesCardConfig extends LovelaceCardConfig {
-  show_header_toggle?: boolean;
-  title?: string;
-  entities: EntitiesCardEntityConfig[];
-  theme?: string;
-}
 
 @customElement("hui-entities-card")
 class HuiEntitiesCard extends LitElement implements LovelaceCard {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import(/* webpackChunkName: "hui-entities-card-editor" */ "../editor/config-elements/hui-entities-card-editor");
+    await import(
+      /* webpackChunkName: "hui-entities-card-editor" */ "../editor/config-elements/hui-entities-card-editor"
+    );
     return document.createElement("hui-entities-card-editor");
   }
 
@@ -104,7 +91,7 @@ class HuiEntitiesCard extends LitElement implements LovelaceCard {
         ${!title && !show_header_toggle
           ? html``
           : html`
-              <div class="header">
+              <div class="card-header">
                 <div class="name">${title}</div>
                 ${show_header_toggle === false
                   ? html``
@@ -118,7 +105,7 @@ class HuiEntitiesCard extends LitElement implements LovelaceCard {
                     `}
               </div>
             `}
-        <div id="states">
+        <div id="states" class="card-content">
           ${this._configEntities!.map((entityConf) =>
             this.renderEntity(entityConf)
           )}
@@ -129,11 +116,18 @@ class HuiEntitiesCard extends LitElement implements LovelaceCard {
 
   static get styles(): CSSResult {
     return css`
-      ha-card {
-        padding: 16px;
+      .card-header {
+        display: flex;
+        justify-content: space-between;
       }
 
-      #states {
+      .card-header .name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .card-header hui-entities-toggle {
         margin: -4px 0;
       }
 
@@ -143,31 +137,6 @@ class HuiEntitiesCard extends LitElement implements LovelaceCard {
 
       #states > div > * {
         overflow: hidden;
-      }
-
-      .header {
-        /* start paper-font-headline style */
-        font-family: "Roboto", "Noto", sans-serif;
-        -webkit-font-smoothing: antialiased; /* OS X subpixel AA bleed bug */
-        text-rendering: optimizeLegibility;
-        font-size: 24px;
-        font-weight: 400;
-        letter-spacing: -0.012em;
-        /* end paper-font-headline style */
-
-        line-height: 40px;
-        color: var(--primary-text-color);
-        padding: 4px 0 12px;
-        display: flex;
-        justify-content: space-between;
-      }
-
-      .header .name {
-        /* start paper-font-common-nowrap style */
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        /* end paper-font-common-nowrap */
       }
 
       .state-card-dialog {

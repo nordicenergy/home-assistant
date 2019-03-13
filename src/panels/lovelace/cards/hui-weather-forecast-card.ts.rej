@@ -1,0 +1,11 @@
+diff a/src/panels/lovelace/cards/hui-weather-forecast-card.ts b/src/panels/lovelace/cards/hui-weather-forecast-card.ts	(rejected hunks)
+@@ -67 +67,3 @@ class HuiWeatherForecastCard extends LitElement implements LovelaceCard {
+-    await import(/* webpackChunkName: "hui-weather-forecast-card-editor" */ "../editor/config-elements/hui-weather-forecast-card-editor");
++    await import(
++      /* webpackChunkName: "hui-weather-forecast-card-editor" */ "../editor/config-elements/hui-weather-forecast-card-editor"
++    );
+@@ -203 +205,3 @@ class HuiWeatherForecastCard extends LitElement implements LovelaceCard {
+-                                  { hour: "numeric" }
++                                  {
++                                    hour: "numeric",
++                                  }

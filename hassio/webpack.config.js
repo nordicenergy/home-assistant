@@ -1,7 +1,9 @@
+const webpack = require("webpack");
 const CompressionPlugin = require("compression-webpack-plugin");
+const zopfli = require("@gfx/zopfli");
+
 const config = require("./config.js");
-const { babelLoaderConfig } = require("../config/babel.js");
-const webpackBase = require("../config/webpack.js");
+const webpackBase = require("../build-scripts/webpack.js");
 
 const isProdBuild = process.env.NODE_ENV === "production";
 const isCI = process.env.CI === "true";
@@ -16,7 +18,20 @@ module.exports = {
   },
   module: {
     rules: [
-      babelLoaderConfig({ latestBuild }),
+      {
+        test: /\.ts$/,
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: "ts-loader",
+            options: {
+              compilerOptions: latestBuild
+                ? { noEmit: false }
+                : { target: "es5", noEmit: false },
+            },
+          },
+        ],
+      },
       {
         test: /\.(html)$/,
         use: {
@@ -30,11 +45,22 @@ module.exports = {
   },
   optimization: webpackBase.optimization(latestBuild),
   plugins: [
+    new webpack.DefinePlugin({
+      __DEV__: JSON.stringify(!isProdBuild),
+      __DEMO__: false,
+      __BUILD__: JSON.stringify(latestBuild ? "latest" : "es5"),
+      "process.env.NODE_ENV": JSON.stringify(
+        isProdBuild ? "production" : "development"
+      ),
+    }),
     isProdBuild &&
       !isCI &&
       new CompressionPlugin({
         cache: true,
         exclude: [/\.js\.map$/, /\.LICENSE$/, /\.py$/, /\.txt$/],
+        algorithm(input, compressionOptions, callback) {
+          return zopfli.gzip(input, compressionOptions, callback);
+        },
       }),
   ].filter(Boolean),
   resolve: {

@@ -13,31 +13,15 @@ import { styleMap } from "lit-html/directives/style-map";
 import "../../../components/ha-card";
 import "../components/hui-warning";
 
-import { LovelaceCardConfig } from "../../../data/lovelace";
-import { HomeAssistant } from "../../../types";
-import { fireEvent } from "../../../common/dom/fire_event";
-import { hasConfigOrEntityChanged } from "../common/has-changed";
-import { LovelaceCard, LovelaceCardEditor } from "../types";
-
 import isValidEntityId from "../../../common/entity/valid_entity_id";
 import applyThemesOnElement from "../../../common/dom/apply_themes_on_element";
 import computeStateName from "../../../common/entity/compute_state_name";
 
-export interface SeverityConfig {
-  green?: number;
-  yellow?: number;
-  red?: number;
-}
-
-export interface Config extends LovelaceCardConfig {
-  entity: string;
-  name?: string;
-  unit?: string;
-  min?: number;
-  max?: number;
-  severity?: SeverityConfig;
-  theme?: string;
-}
+import { HomeAssistant } from "../../../types";
+import { fireEvent } from "../../../common/dom/fire_event";
+import { hasConfigOrEntityChanged } from "../common/has-changed";
+import { LovelaceCard, LovelaceCardEditor } from "../types";
+import { GaugeCardConfig } from "./types";
 
 export const severityMap = {
   red: "var(--label-badge-red)",
@@ -49,16 +33,19 @@ export const severityMap = {
 @customElement("hui-gauge-card")
 class HuiGaugeCard extends LitElement implements LovelaceCard {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import(/* webpackChunkName: "hui-gauge-card-editor" */ "../editor/config-elements/hui-gauge-card-editor");
+    await import(
+      /* webpackChunkName: "hui-gauge-card-editor" */ "../editor/config-elements/hui-gauge-card-editor"
+    );
     return document.createElement("hui-gauge-card-editor");
   }
   public static getStubConfig(): object {
-    return {};
+    return { entity: "" };
   }
 
   @property() public hass?: HomeAssistant;
 
-  @property() private _config?: Config;
+  @property() private _baseUnit = "50px";
+  @property() private _config?: GaugeCardConfig;
 
   private _updated?: boolean;
 
@@ -66,7 +53,7 @@ class HuiGaugeCard extends LitElement implements LovelaceCard {
     return 2;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: GaugeCardConfig): void {
     if (!config || !config.entity) {
       throw new Error("Invalid card configuration");
     }
@@ -115,16 +102,21 @@ class HuiGaugeCard extends LitElement implements LovelaceCard {
     }
 
     return html`
-      <ha-card @click="${this._handleClick}">
+      <ha-card
+        @click="${this._handleClick}"
+        style=${styleMap({
+          "--base-unit": this._baseUnit,
+        })}
+      >
         <div class="container">
           <div class="gauge-a"></div>
           <div class="gauge-b"></div>
           <div
             class="gauge-c"
-            style="${styleMap({
+            style=${styleMap({
               transform: `rotate(${this._translateTurn(state)}turn)`,
               "background-color": this._computeSeverity(state),
-            })}"
+            })}
           ></div>
           <div class="gauge-data">
             <div id="percent">
@@ -170,12 +162,9 @@ class HuiGaugeCard extends LitElement implements LovelaceCard {
       return;
     }
     const baseUnit = this._computeBaseUnit();
-    if (baseUnit === "0px") {
-      return;
+    if (baseUnit !== "0px") {
+      this._baseUnit = baseUnit;
     }
-    (this.shadowRoot!.querySelector(
-      "ha-card"
-    )! as HTMLElement).style.setProperty("--base-unit", baseUnit);
   }
 
   private _computeSeverity(numberValue: number): string {
@@ -227,7 +216,6 @@ class HuiGaugeCard extends LitElement implements LovelaceCard {
   static get styles(): CSSResult {
     return css`
       ha-card {
-        --base-unit: 50px;
         height: calc(var(--base-unit) * 3);
         position: relative;
         cursor: pointer;

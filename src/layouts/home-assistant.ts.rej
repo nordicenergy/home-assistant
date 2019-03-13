@@ -1,0 +1,14 @@
+diff a/src/layouts/home-assistant.ts b/src/layouts/home-assistant.ts	(rejected hunks)
+@@ -48 +48,3 @@ export class HomeAssistantAppEl extends HassElement {
+-    import(/* webpackChunkName: "polyfill-web-animations-next" */ "web-animations-js/web-animations-next-lite.min");
++    import(
++      /* webpackChunkName: "polyfill-web-animations-next" */ "web-animations-js/web-animations-next-lite.min"
++    );
+@@ -58,3 +60,4 @@ export class HomeAssistantAppEl extends HassElement {
+-      this.hassChanged(this.hass!, changedProps.get("hass") as
+-        | HomeAssistant
+-        | undefined);
++      this.hassChanged(
++        this.hass!,
++        changedProps.get("hass") as HomeAssistant | undefined
++      );

@@ -1,0 +1,66 @@
+diff a/src/layouts/partial-panel-resolver.ts b/src/layouts/partial-panel-resolver.ts	(rejected hunks)
+@@ -15 +15,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-calendar" */ "../panels/calendar/ha-panel-calendar"),
++    import(
++      /* webpackChunkName: "panel-calendar" */ "../panels/calendar/ha-panel-calendar"
++    ),
+@@ -17 +19,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-config" */ "../panels/config/ha-panel-config"),
++    import(
++      /* webpackChunkName: "panel-config" */ "../panels/config/ha-panel-config"
++    ),
+@@ -19 +23,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-custom" */ "../panels/custom/ha-panel-custom"),
++    import(
++      /* webpackChunkName: "panel-custom" */ "../panels/custom/ha-panel-custom"
++    ),
+@@ -21 +27,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-developer-tools" */ "../panels/developer-tools/ha-panel-developer-tools"),
++    import(
++      /* webpackChunkName: "panel-developer-tools" */ "../panels/developer-tools/ha-panel-developer-tools"
++    ),
+@@ -23 +31,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-lovelace" */ "../panels/lovelace/ha-panel-lovelace"),
++    import(
++      /* webpackChunkName: "panel-lovelace" */ "../panels/lovelace/ha-panel-lovelace"
++    ),
+@@ -25 +35,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-states" */ "../panels/states/ha-panel-states"),
++    import(
++      /* webpackChunkName: "panel-states" */ "../panels/states/ha-panel-states"
++    ),
+@@ -27 +39,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-history" */ "../panels/history/ha-panel-history"),
++    import(
++      /* webpackChunkName: "panel-history" */ "../panels/history/ha-panel-history"
++    ),
+@@ -29 +43,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-iframe" */ "../panels/iframe/ha-panel-iframe"),
++    import(
++      /* webpackChunkName: "panel-iframe" */ "../panels/iframe/ha-panel-iframe"
++    ),
+@@ -31 +47,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-kiosk" */ "../panels/kiosk/ha-panel-kiosk"),
++    import(
++      /* webpackChunkName: "panel-kiosk" */ "../panels/kiosk/ha-panel-kiosk"
++    ),
+@@ -33 +51,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-logbook" */ "../panels/logbook/ha-panel-logbook"),
++    import(
++      /* webpackChunkName: "panel-logbook" */ "../panels/logbook/ha-panel-logbook"
++    ),
+@@ -35 +55,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-mailbox" */ "../panels/mailbox/ha-panel-mailbox"),
++    import(
++      /* webpackChunkName: "panel-mailbox" */ "../panels/mailbox/ha-panel-mailbox"
++    ),
+@@ -39 +61,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-profile" */ "../panels/profile/ha-panel-profile"),
++    import(
++      /* webpackChunkName: "panel-profile" */ "../panels/profile/ha-panel-profile"
++    ),
+@@ -41 +65,3 @@ const COMPONENTS = {
+-    import(/* webpackChunkName: "panel-shopping-list" */ "../panels/shopping-list/ha-panel-shopping-list"),
++    import(
++      /* webpackChunkName: "panel-shopping-list" */ "../panels/shopping-list/ha-panel-shopping-list"
++    ),

@@ -90,8 +90,8 @@ class HaPanelLogbook extends LocalizeMixin(PolymerElement) {
         <app-header slot="header" fixed>
           <app-toolbar>
             <ha-menu-button
+              hass="[[hass]]"
               narrow="[[narrow]]"
-              show-menu="[[showMenu]]"
             ></ha-menu-button>
             <div main-title>[[localize('panel.logbook')]]</div>
             <paper-icon-button
@@ -160,19 +160,8 @@ class HaPanelLogbook extends LocalizeMixin(PolymerElement) {
 
   static get properties() {
     return {
-      hass: {
-        type: Object,
-      },
-
-      narrow: {
-        type: Boolean,
-        value: false,
-      },
-
-      showMenu: {
-        type: Boolean,
-        value: false,
-      },
+      hass: Object,
+      narrow: Boolean,
 
       // ISO8601 formatted date string
       _currentDate: {

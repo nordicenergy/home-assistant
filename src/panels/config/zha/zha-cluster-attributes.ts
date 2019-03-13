@@ -1,17 +1,24 @@
+import "../../../components/buttons/ha-call-service-button";
+import "../../../components/ha-service-description";
+import "../../../components/ha-card";
+import "../ha-config-section";
+import "@material/mwc-button";
+import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
+import "@polymer/paper-icon-button/paper-icon-button";
+import "@polymer/paper-input/paper-input";
+import "@polymer/paper-item/paper-item";
+import "@polymer/paper-listbox/paper-listbox";
+
 import {
+  css,
+  CSSResult,
   html,
   LitElement,
   PropertyDeclarations,
   PropertyValues,
   TemplateResult,
-  CSSResult,
-  css,
 } from "lit-element";
-import "@material/mwc-button";
-import "@polymer/paper-card/paper-card";
-import "@polymer/paper-icon-button/paper-icon-button";
-import "../../../components/buttons/ha-call-service-button";
-import "../../../components/ha-service-description";
+
 import {
   Attribute,
   Cluster,
@@ -22,13 +29,12 @@ import {
 } from "../../../data/zha";
 import { haStyle } from "../../../resources/styles";
 import { HomeAssistant } from "../../../types";
-import "../ha-config-section";
+import { formatAsPaddedHex } from "./functions";
 import {
   ChangeEvent,
   ItemSelectedEvent,
   SetAttributeServiceData,
 } from "./types";
-import { formatAsPaddedHex } from "./functions";
 
 export class ZHAClusterAttributes extends LitElement {
   public hass?: HomeAssistant;
@@ -89,7 +95,7 @@ export class ZHAClusterAttributes extends LitElement {
         </div>
         <span slot="introduction">View and edit cluster attributes.</span>
 
-        <paper-card class="content">
+        <ha-card class="content">
           <div class="attribute-picker">
             <paper-dropdown-menu
               label="Attributes of the selected cluster"
@@ -115,7 +121,7 @@ export class ZHAClusterAttributes extends LitElement {
           </div>
           ${this.showHelp
             ? html`
-                <div style="color: grey; padding: 16px">
+                <div class="help-text">
                   Select an attribute to view or set its value
                 </div>
               `
@@ -123,7 +129,7 @@ export class ZHAClusterAttributes extends LitElement {
           ${this._selectedAttributeIndex !== -1
             ? this._renderAttributeInteractions()
             : ""}
-        </paper-card>
+        </ha-card>
       </ha-config-section>
     `;
   }
@@ -152,6 +158,13 @@ export class ZHAClusterAttributes extends LitElement {
         <mwc-button @click="${this._onGetZigbeeAttributeClick}"
           >Get Zigbee Attribute</mwc-button
         >
+        ${this.showHelp
+          ? html`
+              <div class="help-text2">
+                Get the value for the selected attribute
+              </div>
+            `
+          : ""}
         <ha-call-service-button
           .hass="${this.hass}"
           domain="zha"
@@ -165,6 +178,7 @@ export class ZHAClusterAttributes extends LitElement {
                 .hass="${this.hass}"
                 domain="zha"
                 service="set_zigbee_cluster_attribute"
+                class="help-text2"
               ></ha-service-description>
             `
           : ""}
@@ -201,7 +215,7 @@ export class ZHAClusterAttributes extends LitElement {
       attribute: this._attributes[this._selectedAttributeIndex].id,
       manufacturer: this._manufacturerCodeOverride
         ? parseInt(this._manufacturerCodeOverride as string, 10)
-        : this.selectedNode!.manufacturer_code,
+        : undefined,
     };
   }
 
@@ -220,7 +234,7 @@ export class ZHAClusterAttributes extends LitElement {
       value: this._attributeValue,
       manufacturer: this._manufacturerCodeOverride
         ? parseInt(this._manufacturerCodeOverride as string, 10)
-        : this.selectedNode!.manufacturer_code,
+        : undefined,
     };
   }
 
@@ -266,8 +280,7 @@ export class ZHAClusterAttributes extends LitElement {
           margin-top: 24px;
         }
 
-        paper-card {
-          display: block;
+        ha-card {
           margin: 0 auto;
           max-width: 600px;
         }
@@ -311,6 +324,16 @@ export class ZHAClusterAttributes extends LitElement {
 
         [hidden] {
           display: none;
+        }
+        .help-text {
+          color: grey;
+          padding-left: 28px;
+          padding-right: 28px;
+          padding-bottom: 16px;
+        }
+        .help-text2 {
+          color: grey;
+          padding: 16px;
         }
       `,
     ];

@@ -1,0 +1,8 @@
+diff a/src/entrypoints/core.ts b/src/entrypoints/core.ts	(rejected hunks)
+@@ -30,3 +30,3 @@ const authProm = isExternal
+-      import(/* webpackChunkName: "external_auth" */ "../external_app/external_auth").then(
+-        ({ createExternalAuth }) => createExternalAuth(hassUrl)
+-      )
++      import(
++        /* webpackChunkName: "external_auth" */ "../external_app/external_auth"
++      ).then(({ createExternalAuth }) => createExternalAuth(hassUrl))

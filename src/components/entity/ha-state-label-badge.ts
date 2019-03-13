@@ -2,11 +2,17 @@ import {
   LitElement,
   html,
   PropertyValues,
-  PropertyDeclarations,
   TemplateResult,
+  css,
+  CSSResult,
+  customElement,
+  property,
 } from "lit-element";
+
 import { HassEntity } from "home-assistant-js-websocket";
 import { classMap } from "lit-html/directives/class-map";
+import { fireEvent } from "../../common/dom/fire_event";
+import { HomeAssistant } from "../../types";
 
 import computeStateDomain from "../../common/entity/compute_state_domain";
 import computeStateName from "../../common/entity/compute_state_name";
@@ -14,21 +20,26 @@ import domainIcon from "../../common/entity/domain_icon";
 import stateIcon from "../../common/entity/state_icon";
 import timerTimeRemaining from "../../common/entity/timer_time_remaining";
 import secondsToDuration from "../../common/datetime/seconds_to_duration";
-import { fireEvent } from "../../common/dom/fire_event";
-import { HomeAssistant } from "../../types";
 
 import "../ha-label-badge";
 
-/*
- * @appliesMixin LocalizeMixin
- * @appliesMixin EventsMixin
- */
+@customElement("ha-state-label-badge")
 export class HaStateLabelBadge extends LitElement {
-  public hass?: HomeAssistant;
-  public state?: HassEntity;
+  @property() public hass?: HomeAssistant;
+
+  @property() public state?: HassEntity;
+
+  @property() public name?: string;
+
+  @property() public icon?: string;
+
+  @property() public image?: string;
+
+  @property() private _timerTimeRemaining?: number;
+
   private _connected?: boolean;
+
   private _updateRemaining?: number;
-  private _timerTimeRemaining?: number;
 
   public connectedCallback(): void {
     super.connectedCallback();
@@ -47,35 +58,36 @@ export class HaStateLabelBadge extends LitElement {
 
     if (!state) {
       return html`
-        ${this.renderStyle()}
-        <ha-label-badge label="not found"></ha-label-badge>
+        <ha-label-badge
+          class="warning"
+          label="${this.hass!.localize("state_badge.default.error")}"
+          icon="hass:alert"
+          description="${this.hass!.localize(
+            "state_badge.default.entity_not_found"
+          )}"
+        ></ha-label-badge>
       `;
     }
 
     const domain = computeStateDomain(state);
 
     return html`
-      ${this.renderStyle()}
       <ha-label-badge
         class="${classMap({
           [domain]: true,
           "has-unit_of_measurement": "unit_of_measurement" in state.attributes,
         })}"
         .value="${this._computeValue(domain, state)}"
-        .icon="${this._computeIcon(domain, state)}"
-        .image="${state.attributes.entity_picture}"
+        .icon="${this.icon ? this.icon : this._computeIcon(domain, state)}"
+        .image="${this.icon
+          ? ""
+          : this.image
+          ? this.image
+          : state.attributes.entity_picture}"
         .label="${this._computeLabel(domain, state, this._timerTimeRemaining)}"
-        .description="${computeStateName(state)}"
+        .description="${this.name ? this.name : computeStateName(state)}"
       ></ha-label-badge>
     `;
-  }
-
-  static get properties(): PropertyDeclarations {
-    return {
-      hass: {},
-      state: {},
-      _timerTimeRemaining: {},
-    };
   }
 
   protected firstUpdated(changedProperties: PropertyValues): void {
@@ -100,6 +112,7 @@ export class HaStateLabelBadge extends LitElement {
     switch (domain) {
       case "binary_sensor":
       case "device_tracker":
+      case "person":
       case "updater":
       case "sun":
       case "alarm_control_panel":
@@ -201,48 +214,47 @@ export class HaStateLabelBadge extends LitElement {
     this._timerTimeRemaining = timerTimeRemaining(stateObj);
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        :host {
-          cursor: pointer;
-        }
+  static get styles(): CSSResult {
+    return css`
+      :host {
+        cursor: pointer;
+      }
 
-        ha-label-badge {
-          --ha-label-badge-color: var(--label-badge-red, #df4c1e);
-        }
-        ha-label-badge.has-unit_of_measurement {
-          --ha-label-badge-label-text-transform: none;
-        }
+      ha-label-badge {
+        --ha-label-badge-color: var(--label-badge-red, #df4c1e);
+      }
+      ha-label-badge.has-unit_of_measurement {
+        --ha-label-badge-label-text-transform: none;
+      }
 
-        ha-label-badge.binary_sensor,
-        ha-label-badge.updater {
-          --ha-label-badge-color: var(--label-badge-blue, #039be5);
-        }
+      ha-label-badge.binary_sensor,
+      ha-label-badge.updater {
+        --ha-label-badge-color: var(--label-badge-blue, #039be5);
+      }
 
-        .red {
-          --ha-label-badge-color: var(--label-badge-red, #df4c1e);
-        }
+      .red {
+        --ha-label-badge-color: var(--label-badge-red, #df4c1e);
+      }
 
-        .blue {
-          --ha-label-badge-color: var(--label-badge-blue, #039be5);
-        }
+      .blue {
+        --ha-label-badge-color: var(--label-badge-blue, #039be5);
+      }
 
-        .green {
-          --ha-label-badge-color: var(--label-badge-green, #0da035);
-        }
+      .green {
+        --ha-label-badge-color: var(--label-badge-green, #0da035);
+      }
 
-        .yellow {
-          --ha-label-badge-color: var(--label-badge-yellow, #f4b400);
-        }
+      .yellow {
+        --ha-label-badge-color: var(--label-badge-yellow, #f4b400);
+      }
 
-        .grey {
-          --ha-label-badge-color: var(
-            --label-badge-grey,
-            var(--paper-grey-500)
-          );
-        }
-      </style>
+      .grey {
+        --ha-label-badge-color: var(--label-badge-grey, var(--paper-grey-500));
+      }
+
+      .warning {
+        --ha-label-badge-color: var(--label-badge-yellow, #fce588);
+      }
     `;
   }
 }
@@ -252,5 +264,3 @@ declare global {
     "ha-state-label-badge": HaStateLabelBadge;
   }
 }
-
-customElements.define("ha-state-label-badge", HaStateLabelBadge);

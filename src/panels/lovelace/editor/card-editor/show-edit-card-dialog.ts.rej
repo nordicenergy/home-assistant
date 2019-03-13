@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/editor/card-editor/show-edit-card-dialog.ts b/src/panels/lovelace/editor/card-editor/show-edit-card-dialog.ts	(rejected hunks)
+@@ -26 +26,3 @@ const registerEditCardDialog = (element: HTMLElement): Event =>
+-      import(/* webpackChunkName: "hui-dialog-edit-card" */ "./hui-dialog-edit-card"),
++      import(
++        /* webpackChunkName: "hui-dialog-edit-card" */ "./hui-dialog-edit-card"
++      ),

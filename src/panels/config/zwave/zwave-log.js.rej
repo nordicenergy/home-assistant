@@ -1,0 +1,6 @@
+diff a/src/panels/config/zwave/zwave-log.js b/src/panels/config/zwave/zwave-log.js	(rejected hunks)
+@@ -134 +134,3 @@ class OzwLog extends EventsMixin(PolymerElement) {
+-          import(/* webpackChunkName: "zwave-log-dialog" */ "./zwave-log-dialog"),
++          import(
++            /* webpackChunkName: "zwave-log-dialog" */ "./zwave-log-dialog"
++          ),

@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/cards/hui-gauge-card.ts b/src/panels/lovelace/cards/hui-gauge-card.ts	(rejected hunks)
+@@ -36 +36,3 @@ class HuiGaugeCard extends LitElement implements LovelaceCard {
+-    await import(/* webpackChunkName: "hui-gauge-card-editor" */ "../editor/config-elements/hui-gauge-card-editor");
++    await import(
++      /* webpackChunkName: "hui-gauge-card-editor" */ "../editor/config-elements/hui-gauge-card-editor"
++    );

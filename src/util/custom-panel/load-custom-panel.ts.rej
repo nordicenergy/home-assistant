@@ -1,0 +1,6 @@
+diff a/src/util/custom-panel/load-custom-panel.ts b/src/util/custom-panel/load-custom-panel.ts	(rejected hunks)
+@@ -9 +9,3 @@ export const loadCustomPanel = (panelConfig): Promise<unknown> => {
+-      import(/* webpackChunkName: "import-href-polyfill" */ "../../resources/html-import/import-href"),
++      import(
++        /* webpackChunkName: "import-href-polyfill" */ "../../resources/html-import/import-href"
++      ),

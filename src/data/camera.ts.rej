@@ -1,0 +1,6 @@
+diff a/src/data/camera.ts b/src/data/camera.ts	(rejected hunks)
+@@ -22,3 +22 @@ export const computeMJPEGStreamUrl = (entity: CameraEntity) =>
+-  `/api/camera_proxy_stream/${entity.entity_id}?token=${
+-    entity.attributes.access_token
+-  }`;
++  `/api/camera_proxy_stream/${entity.entity_id}?token=${entity.attributes.access_token}`;

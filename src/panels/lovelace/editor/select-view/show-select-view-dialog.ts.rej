@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/editor/select-view/show-select-view-dialog.ts b/src/panels/lovelace/editor/select-view/show-select-view-dialog.ts	(rejected hunks)
+@@ -16 +16,3 @@ export const showSelectViewDialog = (
+-      import(/* webpackChunkName: "hui-dialog-select-view" */ "./hui-dialog-select-view"),
++      import(
++        /* webpackChunkName: "hui-dialog-select-view" */ "./hui-dialog-select-view"
++      ),

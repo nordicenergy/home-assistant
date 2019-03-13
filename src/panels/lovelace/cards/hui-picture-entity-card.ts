@@ -6,6 +6,7 @@ import {
   property,
   css,
   CSSResult,
+  PropertyValues,
 } from "lit-element";
 import { classMap } from "lit-html/directives/class-map";
 
@@ -19,47 +20,41 @@ import computeStateName from "../../../common/entity/compute_state_name";
 
 import { longPress } from "../common/directives/long-press-directive";
 import { HomeAssistant } from "../../../types";
-import { LovelaceCardConfig, ActionConfig } from "../../../data/lovelace";
 import { LovelaceCard } from "../types";
 import { handleClick } from "../common/handle-click";
 import { UNAVAILABLE } from "../../../data/entity";
-
-interface Config extends LovelaceCardConfig {
-  entity: string;
-  name?: string;
-  image?: string;
-  camera_image?: string;
-  state_image?: {};
-  aspect_ratio?: string;
-  tap_action?: ActionConfig;
-  hold_action?: ActionConfig;
-  show_name?: boolean;
-  show_state?: boolean;
-}
+import { hasConfigOrEntityChanged } from "../common/has-changed";
+import { PictureEntityCardConfig } from "./types";
 
 @customElement("hui-picture-entity-card")
 class HuiPictureEntityCard extends LitElement implements LovelaceCard {
   @property() public hass?: HomeAssistant;
 
-  @property() private _config?: Config;
+  @property() private _config?: PictureEntityCardConfig;
 
   public getCardSize(): number {
     return 3;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: PictureEntityCardConfig): void {
     if (!config || !config.entity) {
       throw new Error("Invalid Configuration: 'entity' required");
     }
 
     if (
       computeDomain(config.entity) !== "camera" &&
-      (!config.image && !config.state_image && !config.camera_image)
+      !config.image &&
+      !config.state_image &&
+      !config.camera_image
     ) {
       throw new Error("No image source configured.");
     }
 
     this._config = { show_name: true, show_state: true, ...config };
+  }
+
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    return hasConfigOrEntityChanged(this, changedProps);
   }
 
   protected render(): TemplateResult | void {
@@ -115,6 +110,7 @@ class HuiPictureEntityCard extends LitElement implements LovelaceCard {
           .cameraImage="${computeDomain(this._config.entity) === "camera"
             ? this._config.entity
             : this._config.camera_image}"
+          .cameraView="${this._config.camera_view}"
           .entity="${this._config.entity}"
           .aspectRatio="${this._config.aspect_ratio}"
           @ha-click="${this._handleTap}"

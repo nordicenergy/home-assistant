@@ -1,0 +1,6 @@
+diff a/src/panels/profile/ha-mfa-modules-card.js b/src/panels/profile/ha-mfa-modules-card.js	(rejected hunks)
+@@ -87 +87,3 @@ class HaMfaModulesCard extends EventsMixin(LocalizeMixin(PolymerElement)) {
+-          import(/* webpackChunkName: "ha-mfa-module-setup-flow" */ "./ha-mfa-module-setup-flow"),
++          import(
++            /* webpackChunkName: "ha-mfa-module-setup-flow" */ "./ha-mfa-module-setup-flow"
++          ),

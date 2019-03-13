@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/cards/hui-iframe-card.ts b/src/panels/lovelace/cards/hui-iframe-card.ts	(rejected hunks)
+@@ -20 +20,3 @@ export class HuiIframeCard extends LitElement implements LovelaceCard {
+-    await import(/* webpackChunkName: "hui-iframe-card-editor" */ "../editor/config-elements/hui-iframe-card-editor");
++    await import(
++      /* webpackChunkName: "hui-iframe-card-editor" */ "../editor/config-elements/hui-iframe-card-editor"
++    );

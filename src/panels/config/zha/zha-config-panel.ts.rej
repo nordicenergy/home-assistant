@@ -1,0 +1,11 @@
+diff a/src/panels/config/zha/zha-config-panel.ts b/src/panels/config/zha/zha-config-panel.ts	(rejected hunks)
+@@ -24 +24,3 @@ class ZHAConfigPanel extends HassRouterPage {
+-          import(/* webpackChunkName: "zha-configuration-page" */ "./ha-config-zha"),
++          import(
++            /* webpackChunkName: "zha-configuration-page" */ "./ha-config-zha"
++          ),
+@@ -29 +31,3 @@ class ZHAConfigPanel extends HassRouterPage {
+-          import(/* webpackChunkName: "zha-add-devices-page" */ "./zha-add-devices-page"),
++          import(
++            /* webpackChunkName: "zha-add-devices-page" */ "./zha-add-devices-page"
++          ),

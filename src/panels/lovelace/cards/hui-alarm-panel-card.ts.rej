@@ -1,0 +1,6 @@
+diff a/src/panels/lovelace/cards/hui-alarm-panel-card.ts b/src/panels/lovelace/cards/hui-alarm-panel-card.ts	(rejected hunks)
+@@ -41 +41,3 @@ class HuiAlarmPanelCard extends LitElement implements LovelaceCard {
+-    await import(/* webpackChunkName: "hui-alarm-panel-card-editor" */ "../editor/config-elements/hui-alarm-panel-card-editor");
++    await import(
++      /* webpackChunkName: "hui-alarm-panel-card-editor" */ "../editor/config-elements/hui-alarm-panel-card-editor"
++    );

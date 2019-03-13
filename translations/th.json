@@ -7,12 +7,8 @@
         "history": "ประวัติการทำงาน",
         "mailbox": "กล่องจดหมาย",
         "shopping_list": "รายการซื้อของ",
-        "dev-services": "บริการ",
-        "dev-states": "สถานะ",
-        "dev-events": "เหตุการณ์",
-        "dev-templates": "แม่แบบ",
-        "dev-mqtt": "MQTT",
         "dev-info": "ข้อมูล",
+        "developer_tools": "เครื่องมือสำหรับนักพัฒนา",
         "calendar": "ปฏิทิน",
         "profile": "ข้อมูลส่วนตัว"
     },
@@ -82,7 +78,7 @@
             },
             "presence": {
                 "off": "ไม่อยู่",
-                "on": "อยูบ้าน"
+                "on": "อยู่บ้าน"
             },
             "battery": {
                 "off": "ปกติ",
@@ -173,11 +169,11 @@
             "not_home": "ไม่อยู่บ้าน",
             "open": "เปิด",
             "opening": "กำลังเปิด",
-            "closed": "ปิด",
+            "closed": "ปิดแล้ว",
             "closing": "กำลังปิด",
-            "stopped": "หยุด",
-            "locked": "ล็อค",
-            "unlocked": "ปลดล็อค",
+            "stopped": "หยุดแล้ว",
+            "locked": "ล็อคแล้ว",
+            "unlocked": "ปลดล็อคแล้ว",
             "ok": "พร้อมใช้งาน",
             "problem": "มีปัญหา"
         },
@@ -236,12 +232,12 @@
                 "ready": "พร้อมใช้งาน"
             },
             "query_stage": {
-                "initializing": "กำลังเริ่มต้น ({query_stage})",
+                "initializing": "กำลังเตรียมการ ({query_stage})",
                 "dead": "ไม่พร้อมใช้งาน ({query_stage})"
             }
         },
         "weather": {
-            "clear-night": "เคลียร์, กลางคืน",
+            "clear-night": "ฟ้าโปร่ง, กลางคืน",
             "cloudy": "มีเมฆมาก",
             "fog": "หมอก",
             "hail": "ลูกเห็บ",
@@ -279,14 +275,16 @@
     "state_badge": {
         "default": {
             "unknown": "ไม่ทราบสถานะ",
-            "unavailable": "ไม่พร้อมใช้งาน"
+            "unavailable": "ไม่พร้อมใช้งาน",
+            "error": "เกิดข้อผิดพลาด",
+            "entity_not_found": "ไม่พบเอนทิตี"
         },
         "alarm_control_panel": {
             "armed": "เปิดการป้องกัน",
             "disarmed": "ปลดการป้องกัน",
-            "armed_home": "เปิดการป้องกัน-โหมดอยู่บ้าน",
-            "armed_away": "เปิดการป้องกัน-โหมดไม่อยู่บ้าน",
-            "armed_night": "เปิดการป้องกัน-โหมดกลางคืน",
+            "armed_home": "เฝ้าระวังอยู่",
+            "armed_away": "เฝ้าระวังอยู่",
+            "armed_night": "เฝ้าระวังอยู่",
             "pending": "ค้างอยู่",
             "arming": "กำลังเปิดการป้องกัน",
             "disarming": "กำลังปลดการป้องกัน",
@@ -309,6 +307,25 @@
                 "add_item": "เพิ่มรายการใหม่",
                 "microphone_tip": "ลองแตะไมโครโฟนที่ด้านบนขวาและพูดว่า \"เพิ่มลูกอมลงในรายการช้อปปิ้งของฉัน\" ดูสิ!"
             },
+            "developer-tools": {
+                "tabs": {
+                    "services": {
+                        "title": "บริการ"
+                    },
+                    "states": {
+                        "title": "สถานะ"
+                    },
+                    "events": {
+                        "title": "เหตุการณ์"
+                    },
+                    "templates": {
+                        "title": "แม่แบบ"
+                    },
+                    "mqtt": {
+                        "title": "MQTT"
+                    }
+                }
+            },
             "history": {
                 "showing_entries": "วันที่ต้องการแสดง",
                 "period": "ช่วงเวลา"
@@ -325,14 +342,31 @@
             },
             "config": {
                 "header": "การตั้งค่า Home Assistant",
-                "introduction": "ดูสิ! คุณสามารถที่จะกำหนดค่าส่วนประกอบต่างๆ ของคุณได้ โดยรวมถึงส่วนของระบบเชียวนะ! ถึงแม้ตอนนี้ส่วนการแสดงผลยังทำไม่ได้ก็ตาม แต่เรากำลังพัฒนามันอยู่ คงจะใช้ได้เร็วๆ นี้ละ",
+                "introduction": "ดูสิ! สามารถกำหนดค่าส่วนประกอบต่างๆ ของคุณได้ด้วย รวมถึงส่วนของระบบของ Home Assistant เลยเชียวนะ! ถึงแม้ตอนนี้ส่วนการแสดงผลยังทำไม่ได้ก็ตาม แต่เรากำลังพัฒนามันอยู่ คงจะใช้ได้เร็วๆ นี้ละ",
                 "core": {
                     "caption": "ทั่วไป",
                     "description": "ตรวจสอบไฟล์การกำหนดค่าและควบคุมเซิร์ฟเวอร์",
                     "section": {
                         "core": {
-                            "header": "การปรับแต่งและควบคุมเซิร์ฟเวอร์",
+                            "header": "การกำหนดค่าและควบคุมเซิร์ฟเวอร์",
                             "introduction": "เรารู้นะว่าการตั้งค่าเนี่ยมันน่าเบื่อขนาดไหน ในส่วนนี้มันจะช่วยทำให้ชีวิตคุณง่ายขึ้นนิดหน่อย",
+                            "core_config": {
+                                "edit_requires_storage": "ตัวช่วยแก้ไขถูกปิดใช้งาน เนื่องจากการกำหนดค่าถูกกำหนดไว้ในไฟล์ configuration.yaml",
+                                "location_name": "ชื่อในการติดตั้ง Home Assistant ของคุณ",
+                                "latitude": "ละติจูด",
+                                "longitude": "ลองจิจูด",
+                                "elevation": "มุมเงย",
+                                "elevation_meters": "เมตร",
+                                "time_zone": "เขตเวลา",
+                                "unit_system": "ระบบหน่วย",
+                                "unit_system_imperial": "ของจักรพรรดิ",
+                                "unit_system_metric": "เมตริก",
+                                "imperial_example": "ฟาเรนไฮต์, ปอนด์",
+                                "metric_example": "เซลเซียส, กิโลกรัม",
+                                "save_button": "บันทึก"
+                            }
+                        },
+                        "server_control": {
                             "validation": {
                                 "heading": "ตรวจสอบการกำหนดค่า",
                                 "introduction": "ตรวจสอบความถูกต้องการกำหนดค่าของคุณหากคุณเพิ่งทำการเปลี่ยนแปลงบางอย่างกับการกำหนดค่าของคุณและต้องการตรวจสอบให้แน่ใจว่าถูกต้องทั้งหมด",
@@ -362,7 +396,7 @@
                     "description": "ปรับแต่งเอนทิตี้ในรูปแบบของคุณ",
                     "picker": {
                         "header": "การปรับแต่ง",
-                        "introduction": "ปรับแต่งคุณลักษณะต่อเอนทิตีละตัว โดยการเพิ่ม\/แก้ไขจะมีผลทันที เอาการกำหนดเองจะมีผลเมื่อมีการปรับปรุงเอนทิตี"
+                        "introduction": "ปรับแต่งคุณลักษณะของเอนทิตี้แต่ละตัว เมื่อมีการเพิ่มหรือแก้ไขจะมีผลทันที หากลบคุณลักษณะจะเห็นผลต่อเมื่อเอนทิตี้นั้นได้รับการอัพเดท"
                     }
                 },
                 "automation": {
@@ -370,7 +404,7 @@
                     "description": "สร้างและแก้ไขระบบอัตโนมัติ",
                     "picker": {
                         "header": "เครื่องมือแก้ไข ระบบอัตโนมัติ",
-                        "introduction": "ตัวแก้ไขอัตโนมัติช่วยให้คุณสามารถสร้างและแก้ไขระบบอัตโนมัติได้. \nโปรดอ่าน [คำแนะนำ] (https:\/\/home-assistant.io\/docs\/automation\/editor\/) เพื่อให้แน่ใจว่าคุณได้กำหนดค่า Home Assistant อย่างถูกต้อง.",
+                        "introduction": "เป็นตัวช่วยแก้ไขที่ทำให้คุณสามารถสร้างหรือแก้ไขการทำงานอัตโนมัติ\nโปรดอ่าน [คำแนะนำ] (https:\/\/home-assistant.io\/docs\/automation\/editor\/) เพื่อให้การกำหนดค่าของคุณเป็นไปได้อย่างถูกต้อง",
                         "pick_automation": "เลือกระบบอัตโนมัติเพื่อแก้ไข",
                         "no_automations": "เราไม่พบระบบอัตโนมัติใด ๆ สามารถแก้ไขได้",
                         "add_automation": "เพิ่มระบบอัตโนมัติ",
@@ -471,7 +505,7 @@
                             "duplicate": "แยกออกมาเป็นอันใหม่",
                             "delete": "ลบ",
                             "delete_confirm": "คุณแน่ใจหรือไม่ว่าจะลบสิ่งนี้ทิ้ง?",
-                            "unsupported_condition": "เงื่อนไขที่ไม่สนับสนุน: {condition}",
+                            "unsupported_condition": "ไม่รองรับเงื่อนไข: {condition}",
                             "type_select": "ประเภทเงื่อนไข",
                             "type": {
                                 "state": {
@@ -485,7 +519,7 @@
                                     "value_template": "ค่าของรูปแบบ (ปล่อยว่างได้)"
                                 },
                                 "sun": {
-                                    "label": "พระอาทิตย์",
+                                    "label": "ดวงอาทิตย์",
                                     "before": "ก่อน:",
                                     "after": "หลังจาก:",
                                     "before_offset": "ก่อนช่วงเวลา(เลือกเพิ่ม)",
@@ -512,7 +546,7 @@
                         },
                         "actions": {
                             "header": "การกระทำ",
-                            "introduction": "การดำเนินการเป็นสิ่งที่ผู้ช่วยโฮมจะทำเมื่อระบบอัตโนมัติถูกเรียกใช้งาน \n\n [เรียนรู้เพิ่มเติมเกี่ยวกับการดำเนินการ] (https:\/\/home-assistant.io\/docs\/automation\/action\/)",
+                            "introduction": "ใช้สำหรับการกระทำที่ Home Assistant จะทำต่อเมื่อระบบอัตโนมัติมีการเรียกใช้งาน",
                             "add": "เพิ่มการกระทำ",
                             "duplicate": "แยกออกมาเป็นอันใหม่",
                             "delete": "ลบ",
@@ -543,7 +577,9 @@
                                 }
                             },
                             "learn_more": "เรียนรู้เพิ่มเติมเกี่ยวกับ Action"
-                        }
+                        },
+                        "load_error_not_editable": "ระบบอัตโนมัติที่อยู่ในไฟล์ Automations.yaml เท่านั้นที่สามารถแก้ไขได้",
+                        "load_error_unknown": "เกิดข้อผิดพลาดในการโหลดระบบอัตโนมัติ ({err_no})"
                     }
                 },
                 "script": {
@@ -552,7 +588,10 @@
                 },
                 "zwave": {
                     "caption": "Z-Wave",
-                    "description": "จัดการเครือข่าย Z-Wave"
+                    "description": "จัดการเครือข่าย Z-Wave",
+                    "node_config": {
+                        "set_config_parameter": "ตั้งค่าพารามิเตอร์การกำหนดค่า"
+                    }
                 },
                 "users": {
                     "caption": "ผู้ใช้",
@@ -579,7 +618,8 @@
                 "cloud": {
                     "caption": "Home Assistant Cloud",
                     "description_login": "ลงชื่อเข้าใช้เป็น {email}",
-                    "description_not_login": "ยังไม่ได้เข้าสู่ระบบ"
+                    "description_not_login": "ยังไม่ได้เข้าสู่ระบบ",
+                    "description_features": "ควบคุมการทำงานเมื่อออกจากบ้านร่วมกับ Alexa และ Google Assistant"
                 },
                 "integrations": {
                     "caption": "การทำงานร่วมกัน",
@@ -595,18 +635,36 @@
                         "delete_confirm": "แน่ใจหรือว่าต้องการจะลบการบูรณาการนี้",
                         "restart_confirm": "เริ่ม Home Assistant ใหม่หลังจากลบการบูรณาการนี้",
                         "manuf": "โดย {manufacturer}",
-                        "hub": "เชื่อมต่อแล้ว",
+                        "via": "เชื่อมต่อแล้ว",
                         "firmware": "Firmware: {version}",
                         "device_unavailable": "อุปกรณ์นี้ไม่พร้อมใช้งาน",
                         "entity_unavailable": "Entity นี้ไม่พร้อมใช้งาน",
                         "no_area": "ไม่มีห้อง"
+                    },
+                    "config_flow": {
+                        "external_step": {
+                            "description": "ขั้นตอนนี้กำหนดให้คุณเยี่ยมชมเว็บไซต์ภายนอกเพื่อทำให้การดำเนินการสมบูรณ์",
+                            "open_site": "เปิดเว็บไซต์"
+                        }
                     }
                 },
                 "zha": {
                     "caption": "ZHA",
                     "description": "การจัดการระบบอัติโนมัติของ Zigbee",
                     "services": {
-                        "reconfigure": "กำหนดค่าอุปกรณ์ ZHA อีกครั้ง (เพื่อรักษาอุปกรณ์) ใช้สิ่งนี้หากคุณมีปัญหากับอุปกรณ์ หากอุปกรณ์ดังกล่าวเป็นอุปกรณ์ที่ใช้พลังงานจากแบตเตอรี่โปรดตรวจสอบให้แน่ใจว่าอุปกรณ์นั้นเปิดอยู่และยอมรับคำสั่งเมื่อคุณใช้บริการ"
+                        "reconfigure": "กำหนดค่าอุปกรณ์ ZHA อีกครั้ง (เพื่อรักษาอุปกรณ์) ใช้สิ่งนี้หากคุณมีปัญหากับอุปกรณ์ หากอุปกรณ์ดังกล่าวเป็นอุปกรณ์ที่ใช้พลังงานจากแบตเตอรี่โปรดตรวจสอบให้แน่ใจว่าอุปกรณ์นั้นเปิดอยู่และยอมรับคำสั่งเมื่อคุณใช้บริการ",
+                        "updateDeviceName": "ตั้งชื่อที่กำหนดเองสำหรับอุปกรณ์นี้ในการลงทะเบียนอุปกรณ์",
+                        "remove": "ลบอุปกรณ์ออกจากเครือข่าย ZigBee"
+                    },
+                    "device_card": {
+                        "device_name_placeholder": "ชื่อที่ผู้ใช้กำหนดให้",
+                        "area_picker_label": "ห้อง",
+                        "update_name_button": "ชื่อการปรับปรุง"
+                    },
+                    "add_device_page": {
+                        "header": "Zigbee Home Automation - เพิ่มอุปกรณ์",
+                        "spinner": "กำลังค้นหาอุปกรณ์ ZHA Zigbee ...",
+                        "discovery_text": "อุปกรณ์ที่ค้นหาเจอจะปรากฏที่นี่ ทำตามคำแนะนำบนอุปกรณ์ของคุณและให้อุปกรณ์อยู่ในโหมดการจับคู่ด้วย"
                     }
                 },
                 "area_registry": {
@@ -616,7 +674,9 @@
                         "header": "ค่าของห้อง",
                         "introduction": "Areas are used to organize where devices are. This information will be used throughout Home Assistant to help you in organizing your interface, permissions and integrations with other systems.",
                         "introduction2": "สำหรับการวางอุปกรณ์นี้ลงในห้องนี้ ใช้ลิงค์ด้านล่างเพื่อไปยังหน้า 'การทำงานร่วมกัน' และคลิ๊กทีุ่่ม 'ตั้งค่าให้ทำงานร่วมกัน' เพื่อที่จะให้แสดงการ์ดสำหรับอุปกรณ์นั้น",
-                        "integrations_page": "หน้าการทำงานร่วมกัน"
+                        "integrations_page": "หน้าการทำงานร่วมกัน",
+                        "no_areas": "ดูเหมือนว่าคุณยังไม่มีห้องเลย!",
+                        "create_area": "สร้างห้องใหม่"
                     },
                     "no_areas": "ดูเหมือนว่าคุณยังไม่มีห้องเลย!",
                     "create_area": "สร้างห้องใหม่",
@@ -677,32 +737,32 @@
                 },
                 "refresh_tokens": {
                     "header": "Refresh Tokens",
-                    "description": "ในแต่ละครั้ง Refresh Token จะถูกเห็นเป็น Login Session โดย Refresh Token จะถูกลบอัตโนมัติ เมื่อคุณออกจากระบบ Refresh Token จะยังถูกใช้ในบัญชีของคุณเสมอ",
+                    "description": "ในแต่ละครั้ง Refresh Token จะถูกเห็นเป็น Login Session โดย Refresh Token จะถูกลบอัตโนมัติเมื่อคุณกดปุ่มออกจากระบบ\nRefresh Token ต่อไปนี้กำลังถูกใช้ในบัญชีของคุณอยู่..",
                     "token_title": "Refresh Tokens สำหรับ {clientId}",
                     "created_at": "สร้างเมื่อ {date}",
                     "confirm_delete": "คุณแน่ใจหรือไม่ว่าต้องการลบ Refresh Tokens ของ {name} ?",
                     "delete_failed": "การลบ Refresh Token ล้มเหลว",
-                    "last_used": "ใช้ครั้งล่าสุดเมื่อ {date} ในตำแหน่ง {location}",
+                    "last_used": "ใช้ครั้งล่าสุดเมื่อ {date} จาก {location}",
                     "not_used": "ยังไม่เคยถูกใช้งาน",
                     "current_token_tooltip": "ไม่สามารถลบ Refresh Token ปัจจุบันได้"
                 },
                 "long_lived_access_tokens": {
-                    "header": "Access Tokens สำหรับการเข้าถึงระยะยาว",
+                    "header": "โทเค็นการเข้าถึงระยะยาว",
+                    "description": "สร้างโทเค็นการเข้าถึงระยะยาวเพื่อให้สคริปต์ของคุณเชื่อมต่อกับ Home Assistant ได้ โดยแต่ละโทเค็นที่สร้างขึ้นจะอยู่ได้ 10 ปีนับจากวันที่สร้าง\nโทเค็นการเข้าถึงระยะยาวต่อไปนี้กำลังถูกใช้ในบัญชีของคุณอยู่..",
                     "learn_auth_requests": "เรียนรู้วิธีสร้างคำขอที่มีการรับรองความถูกต้อง",
                     "created_at": "สร้างเมื่อ {date}",
                     "confirm_delete": "คุณแน่ใจหรือไม่ว่าต้องการลบโทเค็นการเข้าถึงของ {name} ?",
-                    "delete_failed": "เกิดข้อผิดพลาดในการลบ Access Token ",
+                    "delete_failed": "เกิดข้อผิดพลาดในการลบ Access Token",
                     "create": "สร้าง Token ใหม่",
                     "create_failed": "เกิดข้อผิดพลาดในการลบ Access Token ",
                     "prompt_name": "ชื่อ?",
                     "prompt_copy_token": "จด Access Token ของคุณไว้ที่อื่นด้วย มันจะไม่แสดงให้เห็นอีกแล้วหลังจากนี้",
-                    "empty_state": "คุณยังไม่มี Access Token ระยะยาวเลย",
-                    "last_used": "ใช้ครั้งล่าสุดเมื่อ {date} ในตำแหน่ง {location}",
+                    "empty_state": "คุณยังไม่มีโทเค็นการเข้าถึงระยะยาวเลย",
+                    "last_used": "ใช้ครั้งล่าสุดเมื่อ {date} จาก {location}",
                     "not_used": "ยังไม่เคยถูกใช้งาน"
                 },
                 "current_user": "ขณะนี้คุณเข้าสู่ระบบในชื่อ {fullName}",
                 "is_owner": "ในฐานะ \"เจ้าของ\"",
-                "logout": "ชื่อผู้ใช้",
                 "change_password": {
                     "header": "เปลี่ยนรหัสผ่าน",
                     "current_password": "รหัสผ่านปัจจุบัน",
@@ -712,7 +772,7 @@
                     "submit": "ส่งข้อมูล"
                 },
                 "mfa": {
-                    "header": "โมดูลการรับรองความถูกต้องด้วยหลายปัจจัย",
+                    "header": "โมดูลการพิสูจน์ตัวตนแบบหลายปัจจัย",
                     "disable": "ปิดการใช้งาน",
                     "enable": "เปิดใช้งาน",
                     "confirm_disable": "คุณแน่ใจหรือไม่ว่าต้องการปิดใช้งาน {name} ?"
@@ -829,12 +889,27 @@
                     "data": {
                         "name": "ชื่อ",
                         "username": "ชื่อผู้ใช้",
-                        "password": "รหัสผ่าน"
+                        "password": "รหัสผ่าน",
+                        "password_confirm": "ยืนยันรหัสผ่าน"
                     },
                     "create_account": "สร้างบัญชี",
                     "error": {
-                        "required_fields": "กรอกข้อมูลในฟิลด์ที่จำเป็นทั้งหมด"
+                        "required_fields": "กรอกข้อมูลในฟิลด์ที่จำเป็นทั้งหมด",
+                        "password_not_match": "รหัสผ่านไม่ตรงกัน"
                     }
+                },
+                "integration": {
+                    "intro": "อุปกรณ์และบริการแสดงอยู่ใน Home Assistant เป็นการผสานรวม คุณสามารถตั้งค่าตอนนี้หรือทำภายหลังจากหน้าจอการตั้งค่า",
+                    "more_integrations": "เพิ่มเติม",
+                    "finish": "เสร็จสิ้น"
+                },
+                "core-config": {
+                    "intro": "สวัสดี {name} ยินดีต้อนรับสู่ Home Assistant คุณต้องการตั้งชื่อบ้านของคุณยังไงดีละ",
+                    "intro_location": "เราต้องการทราบว่าคุณอาศัยอยู่ที่ไหน ข้อมูลนี้จะช่วยในการแสดงข้อมูลต่างๆ และตั้งค่าการทำงานอัตโนมัติตามดวงอาทิตย์ ข้อมูลนี้จะไม่เปิดเผยไปยังนอกเครือข่ายของคุณ",
+                    "intro_location_detect": "เราสามารถช่วยคุณกรอกข้อมูลนี้ได้โดยทำการร้องขอแบบครั้งเดียวไปยังบริการภายนอก",
+                    "location_name_default": "อยู่บ้าน",
+                    "button_detect": "ตรวจจับ",
+                    "finish": "ต่อไป"
                 }
             },
             "lovelace": {
@@ -848,6 +923,14 @@
                         "title": "ยินดีต้อนรับกลับบ้าน",
                         "no_devices": "หน้านี้ช่วยให้คุณควบคุมอุปกรณ์ของคุณได้ แต่ยังไงก็ตามมันดูเหมือนว่าคุณยังไม่ได้ติดตั้งอุปกรณ์อะไรไว้เลย ไปยัง 'หน้าการทำงานด้วยกัน' เพื่อเริ่มติดตั้ง",
                         "go_to_integrations_page": "ไปที่หน้าการรวมระบบ"
+                    },
+                    "picture-elements": {
+                        "hold": "ถือ:",
+                        "tap": "แตะ:",
+                        "navigate_to": "นำทางไปยัง {location}",
+                        "toggle": "สลับ {name}",
+                        "call_service": "เรียกบริการ {name}",
+                        "more_info": "แสดงข้อมูลเพิ่มเติม: {name}"
                     }
                 },
                 "editor": {
@@ -864,6 +947,7 @@
                     "migrate": {
                         "header": "การกำหนดค่าไม่ถูกต้อง",
                         "para_no_id": "องค์ประกอบนี้ยังไม่มี ID (สามารถเพิ่ม ID ลงในองค์ประกอบนี้ได้ในไฟล์ 'ui-lovelace.yaml')",
+                        "para_migrate": "Home Assistant สามารถเพิ่มเลขกำกับของการ์ดและแสดงผลอัตโนมัติให้คุณได้ โดยกดปุ่ม 'Mirate Config'",
                         "migrate": "โอนย้ายการกำหนดค่า"
                     },
                     "header": "แก้ไข UI",
@@ -892,19 +976,24 @@
                 },
                 "menu": {
                     "configure_ui": "ตั้งค่าการแสดงผล",
-                    "unused_entities": "เอนทิตีที่ไม่ได้ถูกใช้",
+                    "unused_entities": "เอนทิตีที่ไม่ได้ใช้",
                     "help": "วิธีใช้",
                     "refresh": "รีเฟรช"
                 },
                 "warning": {
                     "entity_not_found": "Entity ไม่พร้อมใช้งาน: {entity}",
                     "entity_non_numeric": "Entity ที่ไม่ใช่ตัวเลข: {entity}"
-                }
+                },
+                "changed_toast": {
+                    "message": "อัพเดทการกำหนดค่าส่วนแสดงผล Lovelace แล้ว คุณต้องการจะรีเฟรชหน้าหรือไม่",
+                    "refresh": "รีเฟรช"
+                },
+                "reload_lovelace": "โหลดส่วนแสดงผล Lovelace ใหม่"
             }
         },
         "sidebar": {
             "log_out": "ออกจากระบบ",
-            "developer_tools": "เครื่องมือสำหรับนักพัฒนา"
+            "external_app_configuration": "การกำหนดค่าแอพ"
         },
         "common": {
             "loading": "กำลังโหลด",
@@ -938,10 +1027,10 @@
             },
             "weather": {
                 "attributes": {
-                    "air_pressure": "ความดันอากาศ",
+                    "air_pressure": "ความกดอากาศ",
                     "humidity": "ความชื้น",
                     "temperature": "อุณหภูมิ",
-                    "visibility": "ความชัดเจน",
+                    "visibility": "ทัศนวิสัย",
                     "wind_speed": "ความเร็วลม"
                 },
                 "cardinal_direction": {
@@ -956,13 +1045,13 @@
                     "s": "ทิศใต้",
                     "se": "ทิศตะวันออกเฉียงใต้",
                     "sse": "ทิศอาคเนย์เฉียงใต้",
-                    "ssw": "ทิศหรดีเฉียงใต้",
+                    "ssw": "ทิศตะวันตกเฉียงใต้ค่อนใต้",
                     "sw": "ทิศตะวันตกเฉียงใต้",
                     "w": "ทิศตะวันตก",
                     "wnw": "ทิศพายัพเฉียงตะวันตก",
-                    "wsw": "ทิศหรดีเฉียงตะวันตก"
+                    "wsw": "ทิศตะวันตกเฉียงใต้ค่อนตะวันตก"
                 },
-                "forecast": "พยากรณ์"
+                "forecast": "พยากรณ์ล่วงหน้า"
             },
             "alarm_control_panel": {
                 "code": "รหัส",
@@ -1041,8 +1130,8 @@
                 "service": "บริการ"
             },
             "relative_time": {
-                "past": "{time}ที่ผ่านมา",
-                "future": "{time} ที่ผ่านมา",
+                "past": "{time}ที่แล้ว",
+                "future": "{time} ที่แล้ว",
                 "never": "ไม่เคย",
                 "duration": {
                     "second": "{count} {count, plural,\n  one {วินาที}\n  other {วินาที}\n}",
@@ -1142,7 +1231,7 @@
     "attribute": {
         "weather": {
             "humidity": "ความชื้น",
-            "visibility": "ความชัดเจน",
+            "visibility": "ทัศนวิสัย",
             "wind_speed": "ความเร็วลม"
         }
     },
@@ -1154,5 +1243,10 @@
                 "auto": "อัตโนมัติ"
             }
         }
+    },
+    "groups": {
+        "system-admin": "ผู้ดูแลระบบ",
+        "system-users": "ผู้ใช้",
+        "system-read-only": "ผู้ใช้ที่สามารถดูได้อย่างเดียว"
     }
 }
