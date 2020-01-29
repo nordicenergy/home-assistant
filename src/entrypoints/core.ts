@@ -14,6 +14,8 @@ import { subscribePanels } from "../data/ws-panels";
 import { subscribeThemes } from "../data/ws-themes";
 import { subscribeUser } from "../data/ws-user";
 import { HomeAssistant } from "../types";
+import { hassUrl } from "../data/auth";
+import { fetchConfig, WindowWithLovelaceProm } from "../data/lovelace";
 
 declare global {
   interface Window {
@@ -21,7 +23,6 @@ declare global {
   }
 }
 
-const hassUrl = `${location.protocol}//${location.host}`;
 const isExternal = location.search.includes("external_auth=1");
 
 const authProm = isExternal
@@ -61,6 +62,9 @@ const connProm = async (auth) => {
   }
 };
 
+if (__DEV__) {
+  performance.mark("hass-start");
+}
 window.hassConnection = authProm().then(connProm);
 
 // Start fetching some of the data that we will need.
@@ -74,6 +78,10 @@ window.hassConnection.then(({ conn }) => {
   subscribePanels(conn, noop);
   subscribeThemes(conn, noop);
   subscribeUser(conn, noop);
+
+  if (location.pathname === "/" || location.pathname.startsWith("/lovelace/")) {
+    (window as WindowWithLovelaceProm).llConfProm = fetchConfig(conn, false);
+  }
 });
 
 window.addEventListener("error", (e) => {

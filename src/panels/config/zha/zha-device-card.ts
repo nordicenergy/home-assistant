@@ -1,8 +1,8 @@
 import "../../../components/buttons/ha-call-service-button";
 import "../../../components/ha-service-description";
 import "../../../components/entity/state-badge";
+import "../../../components/ha-card";
 import "@material/mwc-button";
-import "@polymer/paper-card/paper-card";
 import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
 import "@polymer/paper-input/paper-input";
 import "@polymer/paper-item/paper-icon-item";
@@ -22,20 +22,26 @@ import {
 } from "lit-element";
 
 import { fireEvent } from "../../../common/dom/fire_event";
-import compare from "../../../common/string/compare";
 import {
   AreaRegistryEntry,
-  fetchAreaRegistry,
+  subscribeAreaRegistry,
 } from "../../../data/area_registry";
 import {
   DeviceRegistryEntryMutableParams,
   updateDeviceRegistryEntry,
 } from "../../../data/device_registry";
-import { reconfigureNode, ZHADevice } from "../../../data/zha";
+import {
+  reconfigureNode,
+  ZHADevice,
+  ZHAEntityReference,
+} from "../../../data/zha";
 import { haStyle } from "../../../resources/styles";
 import { HomeAssistant } from "../../../types";
 import { ItemSelectedEvent, NodeServiceData } from "./types";
 import { navigate } from "../../../common/navigate";
+import { UnsubscribeFunc, HassEvent } from "home-assistant-js-websocket";
+import { formatAsPaddedHex } from "./functions";
+import computeStateName from "../../../common/entity/compute_state_name";
 
 declare global {
   // for fire event
@@ -48,18 +54,48 @@ declare global {
 
 @customElement("zha-device-card")
 class ZHADeviceCard extends LitElement {
-  @property() public hass?: HomeAssistant;
-  @property() public narrow?: boolean;
+  @property() public hass!: HomeAssistant;
   @property() public device?: ZHADevice;
-  @property() public showHelp: boolean = false;
-  @property() public showActions?: boolean;
-  @property() public isJoinPage?: boolean;
+  @property({ type: Boolean }) public narrow?: boolean;
+  @property({ type: Boolean }) public showHelp?: boolean = false;
+  @property({ type: Boolean }) public showActions?: boolean;
+  @property({ type: Boolean }) public isJoinPage?: boolean;
   @property() private _serviceData?: NodeServiceData;
   @property() private _areas: AreaRegistryEntry[] = [];
   @property() private _selectedAreaIndex: number = -1;
   @property() private _userGivenName?: string;
+  private _unsubAreas?: UnsubscribeFunc;
+  private _unsubEntities?: UnsubscribeFunc;
 
-  public firstUpdated(changedProperties: PropertyValues): void {
+  public disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._unsubAreas) {
+      this._unsubAreas();
+    }
+    if (this._unsubEntities) {
+      this._unsubEntities();
+    }
+  }
+
+  public connectedCallback() {
+    super.connectedCallback();
+    this._unsubAreas = subscribeAreaRegistry(this.hass.connection, (areas) => {
+      this._areas = areas;
+    });
+    this.hass.connection
+      .subscribeEvents((event: HassEvent) => {
+        if (this.device) {
+          this.device!.entities.forEach((deviceEntity) => {
+            if (event.data.old_entity_id === deviceEntity.entity_id) {
+              deviceEntity.entity_id = event.data.entity_id;
+            }
+          });
+        }
+      }, "entity_registry_updated")
+      .then((unsub) => (this._unsubEntities = unsub));
+  }
+
+  protected firstUpdated(changedProperties: PropertyValues): void {
     super.firstUpdated(changedProperties);
     this.addEventListener("hass-service-called", (ev) =>
       this.serviceCalled(ev)
@@ -67,9 +103,6 @@ class ZHADeviceCard extends LitElement {
     this._serviceData = {
       ieee_address: this.device!.ieee,
     };
-    fetchAreaRegistry(this.hass!).then((areas) => {
-      this._areas = areas.sort((a, b) => compare(a.name, b.name));
-    });
   }
 
   protected updated(changedProperties: PropertyValues): void {
@@ -98,7 +131,7 @@ class ZHADeviceCard extends LitElement {
 
   protected render(): TemplateResult | void {
     return html`
-      <paper-card heading="${this.isJoinPage ? this.device!.name : ""}">
+      <ha-card header="${this.isJoinPage ? this.device!.name : ""}">
         ${
           this.isJoinPage
             ? html`
@@ -106,7 +139,7 @@ class ZHADeviceCard extends LitElement {
                   <div class="model">${this.device!.model}</div>
                   <div class="manuf">
                     ${this.hass!.localize(
-                      "ui.panel.config.integrations.config_entry.manuf",
+                      "ui.dialogs.zha_device_info.manuf",
                       "manufacturer",
                       this.device!.manufacturer
                     )}
@@ -119,6 +152,16 @@ class ZHADeviceCard extends LitElement {
           <dl>
             <dt>IEEE:</dt>
             <dd class="zha-info">${this.device!.ieee}</dd>
+            <dt>Nwk:</dt>
+            <dd class="zha-info">${formatAsPaddedHex(this.device!.nwk)}</dd>
+            <dt>LQI:</dt>
+            <dd class="zha-info">${this.device!.lqi || "Unknown"}</dd>
+            <dt>RSSI:</dt>
+            <dd class="zha-info">${this.device!.rssi || "Unknown"}</dd>
+            <dt>Last Seen:</dt>
+            <dd class="zha-info">${this.device!.last_seen || "Unknown"}</dd>
+            <dt>Power Source:</dt>
+            <dd class="zha-info">${this.device!.power_source || "Unknown"}</dd>
             ${
               this.device!.quirk_applied
                 ? html`
@@ -144,7 +187,9 @@ class ZHADeviceCard extends LitElement {
                 ${!this.isJoinPage
                   ? html`
                       <paper-item-body>
-                        <div class="name">${entity.name}</div>
+                        <div class="name">
+                          ${this._computeEntityName(entity)}
+                        </div>
                         <div class="secondary entity-id">
                           ${entity.entity_id}
                         </div>
@@ -161,14 +206,14 @@ class ZHADeviceCard extends LitElement {
             @change="${this._saveCustomName}"
             .value="${this._userGivenName}"
             placeholder="${this.hass!.localize(
-              "ui.panel.config.zha.device_card.device_name_placeholder"
+              "ui.dialogs.zha_device_info.zha_device_card.device_name_placeholder"
             )}"
           ></paper-input>
         </div>
         <div class="node-picker">
           <paper-dropdown-menu
             label="${this.hass!.localize(
-              "ui.panel.config.zha.device_card.area_picker_label"
+              "ui.dialogs.zha_device_info.zha_device_card.area_picker_label"
             )}"
             class="flex"
           >
@@ -178,9 +223,7 @@ class ZHADeviceCard extends LitElement {
               @iron-select="${this._selectedAreaChanged}"
             >
               <paper-item>
-                ${this.hass!.localize(
-                  "ui.panel.config.integrations.config_entry.no_area"
-                )}
+                ${this.hass!.localize("ui.dialogs.zha_device_info.no_area")}
               </paper-item>
 
               ${this._areas.map(
@@ -202,7 +245,7 @@ class ZHADeviceCard extends LitElement {
                     ? html`
                         <div class="help-text">
                           ${this.hass!.localize(
-                            "ui.panel.config.zha.services.reconfigure"
+                            "ui.dialogs.zha_device_info.services.reconfigure"
                           )}
                         </div>
                       `
@@ -219,7 +262,7 @@ class ZHADeviceCard extends LitElement {
                     ? html`
                         <div class="help-text">
                           ${this.hass!.localize(
-                            "ui.panel.config.zha.services.remove"
+                            "ui.dialogs.zha_device_info.services.remove"
                           )}
                         </div>
                       `
@@ -246,7 +289,7 @@ class ZHADeviceCard extends LitElement {
             : ""
         }
         </div>
-      </paper-card>
+      </ha-card>
     `;
   }
 
@@ -254,6 +297,13 @@ class ZHADeviceCard extends LitElement {
     if (this.hass) {
       await reconfigureNode(this.hass, this.device!.ieee);
     }
+  }
+
+  private _computeEntityName(entity: ZHAEntityReference): string {
+    if (this.hass.states[entity.entity_id]) {
+      return computeStateName(this.hass.states[entity.entity_id]);
+    }
+    return entity.name;
   }
 
   private async _saveCustomName(event): Promise<void> {
@@ -316,7 +366,7 @@ class ZHADeviceCard extends LitElement {
           padding: 4px;
           justify-content: left;
         }
-        paper-card {
+        ha-card {
           flex: 1 0 100%;
           padding-bottom: 10px;
           min-width: 425px;
@@ -329,6 +379,7 @@ class ZHADeviceCard extends LitElement {
         }
         .device .manuf {
           color: var(--secondary-text-color);
+          margin-bottom: 20px;
         }
         .extra-info {
           margin-top: 8px;
@@ -341,14 +392,17 @@ class ZHADeviceCard extends LitElement {
         .info {
           margin-left: 16px;
         }
+        dl {
+          display: grid;
+          grid-template-columns: 125px 1fr;
+        }
         dl dt {
           padding-left: 12px;
           float: left;
-          width: 50px;
           text-align: left;
         }
-        dt dd {
-          text-align: left;
+        dl dd {
+          max-width: 200px;
         }
         paper-icon-item {
           cursor: pointer;

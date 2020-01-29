@@ -31,6 +31,8 @@ documentContainer.innerHTML = `<custom-style>
       --accent-color: #ff9800;
       --divider-color: rgba(0, 0, 0, .12);
 
+      --scrollbar-thumb-color: rgb(194, 194, 194);
+
       /* states and badges */
       --state-icon-color: #44739e;
       --state-icon-active-color: #FDD835;
@@ -123,6 +125,7 @@ documentContainer.innerHTML = `<custom-style>
 
       /* mwc */
       --mdc-theme-primary: var(--primary-color);
+      --mdc-theme-secondary: var(--accent-color);
     }
   </style>
 

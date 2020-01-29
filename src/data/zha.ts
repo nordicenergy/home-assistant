@@ -8,6 +8,10 @@ export interface ZHAEntityReference extends HassEntity {
 export interface ZHADevice {
   name: string;
   ieee: string;
+  nwk: string;
+  lqi: string;
+  rssi: string;
+  last_seen: string;
   manufacturer: string;
   model: string;
   quirk_applied: boolean;
@@ -74,6 +78,15 @@ export const fetchAttributesForCluster = (
 export const fetchDevices = (hass: HomeAssistant): Promise<ZHADevice[]> =>
   hass.callWS({
     type: "zha/devices",
+  });
+
+export const fetchZHADevice = (
+  hass: HomeAssistant,
+  ieeeAddress: string
+): Promise<ZHADevice> =>
+  hass.callWS({
+    type: "zha/device",
+    ieee: ieeeAddress,
   });
 
 export const fetchBindableDevices = (

@@ -10,7 +10,6 @@ import {
 } from "home-assistant-js-websocket";
 import { LocalizeFunc } from "./common/translations/localize";
 import { ExternalMessaging } from "./external_app/external_messaging";
-import { HASSDomEvent } from "./common/dom/fire_event";
 
 declare global {
   var __DEV__: boolean;
@@ -38,15 +37,8 @@ declare global {
       value: unknown;
     };
     change: undefined;
-    "connection-status": ConnectionStatus;
-  }
-
-  interface GlobalEventHandlersEventMap {
-    "connection-status": HASSDomEvent<ConnectionStatus>;
   }
 }
-
-type ConnectionStatus = "connected" | "auth-invalid" | "disconnected";
 
 export interface WebhookError {
   code: number;
@@ -103,6 +95,13 @@ export interface Translation {
   fingerprints: { [fragment: string]: string };
 }
 
+export interface TranslationMetadata {
+  fragments: string[];
+  translations: {
+    [lang: string]: Translation;
+  };
+}
+
 export interface Notification {
   notification_id: string;
   message: string;
@@ -135,60 +134,29 @@ export interface HomeAssistant {
   //   - english (en)
   language: string;
   // local stored language, keep that name for backward compability
-  selectedLanguage: string;
+  selectedLanguage: string | null;
   resources: Resources;
   localize: LocalizeFunc;
-  translationMetadata: {
-    fragments: string[];
-    translations: {
-      [lang: string]: Translation;
-    };
-  };
+  translationMetadata: TranslationMetadata;
 
-  dockedSidebar: boolean;
-  moreInfoEntityId: string;
+  dockedSidebar: "docked" | "always_hidden" | "auto";
+  moreInfoEntityId: string | null;
   user?: CurrentUser;
-  callService: (
+  hassUrl(path?): string;
+  callService(
     domain: string,
     service: string,
     serviceData?: { [key: string]: any }
-  ) => Promise<void>;
-  callApi: <T>(
+  ): Promise<void>;
+  callApi<T>(
     method: "GET" | "POST" | "PUT" | "DELETE",
     path: string,
     parameters?: { [key: string]: any }
-  ) => Promise<T>;
-  fetchWithAuth: (
-    path: string,
-    init?: { [key: string]: any }
-  ) => Promise<Response>;
-  sendWS: (msg: MessageBase) => Promise<void>;
-  callWS: <T>(msg: MessageBase) => Promise<T>;
+  ): Promise<T>;
+  fetchWithAuth(path: string, init?: { [key: string]: any }): Promise<Response>;
+  sendWS(msg: MessageBase): void;
+  callWS<T>(msg: MessageBase): Promise<T>;
 }
-
-export type ClimateEntity = HassEntityBase & {
-  attributes: HassEntityAttributeBase & {
-    current_temperature: number;
-    min_temp: number;
-    max_temp: number;
-    temperature: number;
-    target_temp_step?: number;
-    target_temp_high?: number;
-    target_temp_low?: number;
-    target_humidity?: number;
-    target_humidity_low?: number;
-    target_humidity_high?: number;
-    fan_mode?: string;
-    fan_list?: string[];
-    operation_mode?: string;
-    operation_list?: string[];
-    hold_mode?: string;
-    swing_mode?: string;
-    swing_list?: string[];
-    away_mode?: "on" | "off";
-    aux_heat?: "on" | "off";
-  };
-};
 
 export type LightEntity = HassEntityBase & {
   attributes: HassEntityAttributeBase & {

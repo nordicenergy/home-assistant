@@ -1,3 +1,7 @@
+/*
+  This file is not run through webpack, but instead is directly manipulated
+  by Workbox Webpack plugin. So we cannot use __DEV__ or other constants.
+*/
 /* global workbox clients */
 
 function initRouting() {
@@ -11,14 +15,14 @@ function initRouting() {
 
   // Get api from network.
   workbox.routing.registerRoute(
-    new RegExp(`${location.host}/api/.*`),
+    new RegExp(`${location.host}/(api|auth)/.*`),
     new workbox.strategies.NetworkOnly()
   );
 
-  // Get manifest and service worker from network.
+  // Get manifest, service worker, onboarding from network.
   workbox.routing.registerRoute(
     new RegExp(
-      `${location.host}/(service_worker.js|service_worker_es5.js|manifest.json)`
+      `${location.host}/(service_worker.js|manifest.json|onboarding.html)`
     ),
     new workbox.strategies.NetworkOnly()
   );
@@ -76,11 +80,7 @@ function initPushNotifications() {
         event.waitUntil(
           self.registration
             .getNotifications({ tag: data.tag })
-            .then(function(notifications) {
-              for (const n of notifications) {
-                n.close();
-              }
-            })
+            .then((notifications) => notifications.forEach((n) => n.close()))
         );
         return;
       }
@@ -161,11 +161,8 @@ self.addEventListener("message", (message) => {
 });
 
 workbox.setConfig({
-  debug: __DEV__,
+  debug: false,
 });
 
-if (!__DEV__) {
-  initRouting();
-}
-
+initRouting();
 initPushNotifications();

@@ -2,13 +2,13 @@ import "@polymer/iron-flex-layout/iron-flex-layout-classes";
 import "@polymer/paper-tooltip/paper-tooltip";
 import "@material/mwc-button";
 import "@polymer/paper-fab/paper-fab";
-import "@polymer/paper-card/paper-card";
 import "@polymer/iron-icon/iron-icon";
 import "@polymer/paper-item/paper-item";
 import "@polymer/paper-item/paper-item-body";
 import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
+import "../../../components/ha-card";
 import "../../../components/entity/ha-state-icon";
 import "../../../layouts/hass-subpage";
 import "../../../resources/ha-style";
@@ -16,13 +16,14 @@ import "../../../components/ha-icon-next";
 
 import { computeRTL } from "../../../common/util/compute_rtl";
 import "../ha-config-section";
-import EventsMixin from "../../../mixins/events-mixin";
+import { EventsMixin } from "../../../mixins/events-mixin";
 import LocalizeMixin from "../../../mixins/localize-mixin";
 import computeStateName from "../../../common/entity/compute_state_name";
 import {
   loadConfigFlowDialog,
   showConfigFlowDialog,
 } from "../../../dialogs/config-flow/show-dialog-config-flow";
+import { localizeConfigFlowTitle } from "../../../data/config_flow";
 
 /*
  * @appliesMixin LocalizeMixin
@@ -34,12 +35,12 @@ class HaConfigManagerDashboard extends LocalizeMixin(
   static get template() {
     return html`
       <style include="iron-flex ha-style">
+        ha-card {
+          overflow: hidden;
+        }
         mwc-button {
           top: 3px;
           margin-right: -0.57em;
-        }
-        paper-card:last-child {
-          margin-top: 12px;
         }
         .config-entry-row {
           display: flex;
@@ -84,7 +85,7 @@ class HaConfigManagerDashboard extends LocalizeMixin(
             <span slot="header"
               >[[localize('ui.panel.config.integrations.discovered')]]</span
             >
-            <paper-card>
+            <ha-card>
               <template is="dom-repeat" items="[[progress]]">
                 <div class="config-entry-row">
                   <paper-item-body>
@@ -95,7 +96,7 @@ class HaConfigManagerDashboard extends LocalizeMixin(
                   >
                 </div>
               </template>
-            </paper-card>
+            </ha-card>
           </ha-config-section>
         </template>
 
@@ -103,7 +104,7 @@ class HaConfigManagerDashboard extends LocalizeMixin(
           <span slot="header"
             >[[localize('ui.panel.config.integrations.configured')]]</span
           >
-          <paper-card>
+          <ha-card>
             <template is="dom-if" if="[[!entries.length]]">
               <div class="config-entry-row">
                 <paper-item-body two-line>
@@ -112,7 +113,7 @@ class HaConfigManagerDashboard extends LocalizeMixin(
               </div>
             </template>
             <template is="dom-repeat" items="[[entries]]">
-              <a href="/config/integrations/[[item.entry_id]]">
+              <a href="/config/integrations/config_entry/[[item.entry_id]]">
                 <paper-item>
                   <paper-item-body two-line>
                     <div>
@@ -125,10 +126,7 @@ class HaConfigManagerDashboard extends LocalizeMixin(
                         items="[[_computeConfigEntryEntities(hass, item, entities)]]"
                       >
                         <span>
-                          <ha-state-icon
-                            state-obj="[[item]]"
-                            on-click="_handleMoreInfo"
-                          ></ha-state-icon>
+                          <ha-state-icon state-obj="[[item]]"></ha-state-icon>
                           <paper-tooltip position="bottom"
                             >[[_computeStateName(item)]]</paper-tooltip
                           >
@@ -140,7 +138,7 @@ class HaConfigManagerDashboard extends LocalizeMixin(
                 </paper-item>
               </a>
             </template>
-          </paper-card>
+          </ha-card>
         </ha-config-section>
 
         <paper-fab
@@ -175,8 +173,6 @@ class HaConfigManagerDashboard extends LocalizeMixin(
        */
       progress: Array,
 
-      handlers: Array,
-
       rtl: {
         type: Boolean,
         reflectToAttribute: true,
@@ -207,21 +203,8 @@ class HaConfigManagerDashboard extends LocalizeMixin(
     return localize(`component.${integration}.config.title`);
   }
 
-  _computeActiveFlowTitle(localize, integration) {
-    const placeholders = integration.context.title_placeholders || {};
-    const placeholderKeys = Object.keys(placeholders);
-    if (placeholderKeys.length === 0) {
-      return localize(`component.${integration.handler}.config.title`);
-    }
-    const args = [];
-    placeholderKeys.forEach((key) => {
-      args.push(key);
-      args.push(placeholders[key]);
-    });
-    return localize(
-      `component.${integration.handler}.config.flow_title`,
-      ...args
-    );
+  _computeActiveFlowTitle(localize, flow) {
+    return localizeConfigFlowTitle(localize, flow);
   }
 
   _computeConfigEntryEntities(hass, configEntry, entities) {
@@ -242,10 +225,6 @@ class HaConfigManagerDashboard extends LocalizeMixin(
 
   _computeStateName(stateObj) {
     return computeStateName(stateObj);
-  }
-
-  _handleMoreInfo(ev) {
-    this.fire("hass-more-info", { entityId: ev.model.item.entity_id });
   }
 
   _computeRTL(hass) {

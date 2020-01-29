@@ -1,5 +1,5 @@
-const serviceWorkerUrl =
-  __BUILD__ === "latest" ? "/service_worker.js" : "/service_worker_es5.js";
+import { HassElement } from "../state/hass-element";
+import { showToast } from "./toast";
 
 export const registerServiceWorker = (notifyUpdate = true) => {
   if (
@@ -9,7 +9,7 @@ export const registerServiceWorker = (notifyUpdate = true) => {
     return;
   }
 
-  navigator.serviceWorker.register(serviceWorkerUrl).then((reg) => {
+  navigator.serviceWorker.register("/service_worker.js").then((reg) => {
     reg.addEventListener("updatefound", () => {
       const installingWorker = reg.installing;
       if (!installingWorker || !notifyUpdate) {
@@ -23,9 +23,19 @@ export const registerServiceWorker = (notifyUpdate = true) => {
           !__DEMO__
         ) {
           // Notify users here of a new frontend being available.
-          import(/* webpackChunkName: "show-new-frontend-toast" */ "./show-new-frontend-toast").then(
-            (mod) => mod.default(installingWorker)
-          );
+          const haElement = window.document.querySelector(
+            "home-assistant, ha-onboarding"
+          )! as HassElement;
+          showToast(haElement, {
+            message: "A new version of the frontend is available.",
+            action: {
+              action: () =>
+                installingWorker.postMessage({ type: "skipWaiting" }),
+              text: "reload",
+            },
+            duration: 0,
+            dismissable: false,
+          });
         }
       });
     });

@@ -1,76 +1,43 @@
 import { HomeAssistant } from "../types";
 
-export interface FieldSchema {
-  name: string;
-  default?: any;
-  optional: boolean;
-}
-
-export interface ConfigFlowProgress {
-  flow_id: string;
-  handler: string;
-  context: { [key: string]: any };
-}
-
-export interface ConfigFlowStepForm {
-  type: "form";
-  flow_id: string;
-  handler: string;
-  step_id: string;
-  data_schema: FieldSchema[];
-  errors: { [key: string]: string };
-  description_placeholders: { [key: string]: string };
-}
-
-export interface ConfigFlowStepCreateEntry {
-  type: "create_entry";
-  version: number;
-  flow_id: string;
-  handler: string;
+export interface ConfigEntry {
+  entry_id: string;
+  domain: string;
   title: string;
-  // Config entry ID
-  result: string;
-  description: string;
-  description_placeholders: { [key: string]: string };
+  source: string;
+  state: string;
+  connection_class: string;
+  supports_options: boolean;
 }
 
-export interface ConfigFlowStepAbort {
-  type: "abort";
-  flow_id: string;
-  handler: string;
-  reason: string;
-  description_placeholders: { [key: string]: string };
+export interface ConfigEntrySystemOptions {
+  disable_new_entities: boolean;
 }
 
-export type ConfigFlowStep =
-  | ConfigFlowStepForm
-  | ConfigFlowStepCreateEntry
-  | ConfigFlowStepAbort;
+export const getConfigEntries = (hass: HomeAssistant) =>
+  hass.callApi<ConfigEntry[]>("GET", "config/config_entries/entry");
 
-export const createConfigFlow = (hass: HomeAssistant, handler: string) =>
-  hass.callApi<ConfigFlowStep>("POST", "config/config_entries/flow", {
-    handler,
+export const deleteConfigEntry = (hass: HomeAssistant, configEntryId: string) =>
+  hass.callApi<{
+    require_restart: boolean;
+  }>("DELETE", `config/config_entries/entry/${configEntryId}`);
+
+export const getConfigEntrySystemOptions = (
+  hass: HomeAssistant,
+  configEntryId: string
+) =>
+  hass.callWS<ConfigEntrySystemOptions>({
+    type: "config_entries/system_options/list",
+    entry_id: configEntryId,
   });
 
-export const fetchConfigFlow = (hass: HomeAssistant, flowId: string) =>
-  hass.callApi<ConfigFlowStep>("GET", `config/config_entries/flow/${flowId}`);
-
-export const handleConfigFlowStep = (
+export const updateConfigEntrySystemOptions = (
   hass: HomeAssistant,
-  flowId: string,
-  data: { [key: string]: any }
+  configEntryId: string,
+  params: Partial<ConfigEntrySystemOptions>
 ) =>
-  hass.callApi<ConfigFlowStep>(
-    "POST",
-    `config/config_entries/flow/${flowId}`,
-    data
-  );
-
-export const deleteConfigFlow = (hass: HomeAssistant, flowId: string) =>
-  hass.callApi("DELETE", `config/config_entries/flow/${flowId}`);
-
-export const getConfigFlowsInProgress = (hass: HomeAssistant) =>
-  hass.callApi<ConfigFlowProgress[]>("GET", "config/config_entries/flow");
-
-export const getConfigFlowHandlers = (hass: HomeAssistant) =>
-  hass.callApi<string[]>("GET", "config/config_entries/flow_handlers");
+  hass.callWS({
+    type: "config_entries/system_options/update",
+    entry_id: configEntryId,
+    ...params,
+  });

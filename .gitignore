@@ -4,7 +4,6 @@ node_modules/*
 npm-debug.log
 .DS_Store
 hass_frontend/*
-hass_frontend_es5/*
 .reify-cache
 demo/hademo-icons.html
 
@@ -25,6 +24,9 @@ dist
 # vscode
 .vscode/*
 !.vscode/extensions.json
+
+# Cast dev settings 
+src/cast/dev_const.ts
 
 # Secrets
 .lokalise_token

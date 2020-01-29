@@ -1,7 +1,6 @@
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const { babelLoaderConfig } = require("../config/babel.js");
-const webpackBase = require("../config/webpack.js");
+const webpackBase = require("../build-scripts/webpack.js");
 
 const isProd = process.env.NODE_ENV === "production";
 const chunkFilename = isProd ? "chunk.[chunkhash].js" : "[name].chunk.js";
@@ -17,7 +16,20 @@ module.exports = {
   entry: "./src/entrypoint.js",
   module: {
     rules: [
-      babelLoaderConfig({ latestBuild }),
+      {
+        test: /\.ts$/,
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: "ts-loader",
+            options: {
+              compilerOptions: latestBuild
+                ? { noEmit: false }
+                : { target: "es5", noEmit: false },
+            },
+          },
+        ],
+      },
       {
         test: /\.css$/,
         use: "raw-loader",
@@ -44,8 +56,8 @@ module.exports = {
         to: "static/images/leaflet/",
       },
       {
-        from: "../node_modules/@polymer/font-roboto-local/fonts",
-        to: "static/fonts",
+        from: "../node_modules/roboto-fontface/fonts/roboto/*.woff2",
+        to: "static/fonts/roboto/",
       },
       {
         from: "../node_modules/leaflet/dist/images",

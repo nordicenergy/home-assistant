@@ -1,4 +1,5 @@
 import { HomeAssistant } from "../types";
+import { Connection, getCollection } from "home-assistant-js-websocket";
 
 export interface LovelaceConfig {
   title?: string;
@@ -60,10 +61,10 @@ export type ActionConfig =
   | NoActionConfig;
 
 export const fetchConfig = (
-  hass: HomeAssistant,
+  conn: Connection,
   force: boolean
 ): Promise<LovelaceConfig> =>
-  hass.callWS({
+  conn.sendMessagePromise({
     type: "lovelace/config",
     force,
   });
@@ -76,3 +77,23 @@ export const saveConfig = (
     type: "lovelace/config/save",
     config,
   });
+
+export const subscribeLovelaceUpdates = (
+  conn: Connection,
+  onChange: () => void
+) => conn.subscribeEvents(onChange, "lovelace_updated");
+
+export const getLovelaceCollection = (conn: Connection) =>
+  getCollection(
+    conn,
+    "_lovelace",
+    (conn2) => fetchConfig(conn2, false),
+    (_conn, store) =>
+      subscribeLovelaceUpdates(conn, () =>
+        fetchConfig(conn, false).then((config) => store.setState(config, true))
+      )
+  );
+
+export interface WindowWithLovelaceProm extends Window {
+  llConfProm?: Promise<LovelaceConfig>;
+}

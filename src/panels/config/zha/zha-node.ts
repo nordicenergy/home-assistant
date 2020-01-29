@@ -1,10 +1,10 @@
 import "../../../components/buttons/ha-call-service-button";
 import "../../../components/ha-service-description";
+import "../../../components/ha-card";
 import "../ha-config-section";
 import "./zha-clusters";
 import "./zha-device-card";
 import "@material/mwc-button";
-import "@polymer/paper-card/paper-card";
 import "@polymer/paper-icon-button/paper-icon-button";
 import "@polymer/paper-input/paper-input";
 import "@polymer/paper-item/paper-item";
@@ -70,7 +70,7 @@ export class ZHANode extends LitElement {
           press at ~5 second intervals that keep devices awake while you
           interact with them.
         </span>
-        <paper-card class="content">
+        <ha-card class="content">
           <div class="node-picker">
             <paper-dropdown-menu
               label="Devices"
@@ -105,18 +105,17 @@ export class ZHANode extends LitElement {
             ? html`
                 <zha-device-card
                   class="card"
-                  .hass="${this.hass}"
-                  .device="${this._selectedDevice}"
-                  .narrow="${!this.isWide}"
-                  .showHelp="${this._showHelp}"
-                  .showActions="${true}"
-                  @zha-device-removed="${this._onDeviceRemoved}"
-                  .isJoinPage="${false}"
+                  .hass=${this.hass}
+                  .device=${this._selectedDevice}
+                  .narrow=${!this.isWide}
+                  .showHelp=${this._showHelp}
+                  showActions
+                  @zha-device-removed=${this._onDeviceRemoved}
                 ></zha-device-card>
               `
             : ""}
           ${this._selectedDevice ? this._renderClusters() : ""}
-        </paper-card>
+        </ha-card>
       </ha-config-section>
     `;
   }
@@ -183,8 +182,7 @@ export class ZHANode extends LitElement {
           padding-bottom: 16px;
         }
 
-        paper-card {
-          display: block;
+        ha-card {
           margin: 0 auto;
           max-width: 600px;
         }

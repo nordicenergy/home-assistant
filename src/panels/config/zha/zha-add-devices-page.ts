@@ -36,10 +36,10 @@ class ZHAAddDevicesPage extends LitElement {
 
   public connectedCallback(): void {
     super.connectedCallback();
-    if (this.route && this.route.path && this.route.path !== "") {
-      this._ieeeAddress = this.route.path.substring(1);
-    }
-    this._subscribe(this._ieeeAddress);
+    this.route && this.route.path && this.route.path !== ""
+      ? (this._ieeeAddress = this.route.path.substring(1))
+      : (this._ieeeAddress = undefined);
+    this._subscribe();
   }
 
   public disconnectedCallback(): void {
@@ -113,12 +113,12 @@ class ZHAAddDevicesPage extends LitElement {
                   (device) => html`
                     <zha-device-card
                       class="card"
-                      .hass="${this.hass}"
-                      .device="${device}"
-                      .narrow="${!this.isWide}"
-                      .showHelp="${this._showHelp}"
-                      .showActions="${!this._active}"
-                      .isJoinPage="${true}"
+                      .hass=${this.hass}
+                      .device=${device}
+                      .narrow=${!this.isWide}
+                      .showHelp=${this._showHelp}
+                      .showActions=${!this._active}
+                      isJoinPage
                     ></zha-device-card>
                   `
                 )}
@@ -156,10 +156,10 @@ class ZHAAddDevicesPage extends LitElement {
     }
   }
 
-  private _subscribe(ieeeAddress: string | undefined): void {
+  private _subscribe(): void {
     const data: any = { type: "zha/devices/permit" };
-    if (ieeeAddress) {
-      data.ieee = ieeeAddress;
+    if (this._ieeeAddress) {
+      data.ieee = this._ieeeAddress;
     }
     this._subscribed = this.hass!.connection.subscribeMessage(
       (message) => this._handleMessage(message),

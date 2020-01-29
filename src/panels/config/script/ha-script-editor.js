@@ -18,6 +18,7 @@ import NavigateMixin from "../../../mixins/navigate-mixin";
 import LocalizeMixin from "../../../mixins/localize-mixin";
 
 import { computeRTL } from "../../../common/util/compute_rtl";
+import { deleteScript } from "../../../data/script";
 
 function ScriptEditor(mountEl, props, mergeEl) {
   return render(h(Script, props), mountEl, mergeEl);
@@ -39,15 +40,12 @@ class HaScriptEditor extends LocalizeMixin(NavigateMixin(PolymerElement)) {
         .content {
           padding-bottom: 20px;
         }
-        paper-card {
-          display: block;
-        }
         .triggers,
         .script {
           margin-top: -16px;
         }
-        .triggers paper-card,
-        .script paper-card {
+        .triggers ha-card,
+        .script ha-card {
           margin-top: 16px;
         }
         .add-card mwc-button {
@@ -102,7 +100,13 @@ class HaScriptEditor extends LocalizeMixin(NavigateMixin(PolymerElement)) {
             <ha-paper-icon-button-arrow-prev
               on-click="backTapped"
             ></ha-paper-icon-button-arrow-prev>
-            <div main-title="">Script [[computeName(script)]]</div>
+            <div main-title>Script [[computeName(script)]]</div>
+            <template is="dom-if" if="[[!creatingNew]]">
+              <paper-icon-button
+                icon="hass:delete"
+                on-click="_delete"
+              ></paper-icon-button>
+            </template>
           </app-toolbar>
         </app-header>
         <div class="content">
@@ -274,6 +278,14 @@ class HaScriptEditor extends LocalizeMixin(NavigateMixin(PolymerElement)) {
       );
       this._renderScheduled = false;
     });
+  }
+
+  async _delete() {
+    if (!confirm("Are you sure you want to delete this script?")) {
+      return;
+    }
+    await deleteScript(this.hass, computeObjectId(this.script.entity_id));
+    history.back();
   }
 
   saveScript() {
