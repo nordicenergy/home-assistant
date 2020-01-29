@@ -7,11 +7,8 @@
         "history": "इतिहास",
         "mailbox": "मेलबॉक्स",
         "shopping_list": "खरीदारी की सूची",
-        "dev-services": "सेवाएं",
-        "dev-events": "घटनाओं",
-        "dev-templates": "टेम्पलेट्स",
-        "dev-mqtt": "MQTT",
-        "dev-info": "जानकारी"
+        "dev-info": "जानकारी",
+        "developer_tools": "डेवलपर उपकरण"
     },
     "state": {
         "default": {
@@ -34,7 +31,8 @@
         "climate": {
             "heat": "गर्मी",
             "cool": "ठंडा",
-            "dry": "सूखा"
+            "dry": "सूखा",
+            "manual": "गाइड"
         },
         "device_tracker": {
             "home": "घर"
@@ -98,7 +96,9 @@
     "state_badge": {
         "default": {
             "unknown": "अज्ञात",
-            "unavailable": "अनुपलब्ध"
+            "unavailable": "अनुपलब्ध",
+            "error": "Errore",
+            "entity_not_found": "Entità non trovata"
         },
         "alarm_control_panel": {
             "pending": "अपूर्ण"
@@ -114,9 +114,28 @@
                 "add_item": "आइटम जोड़ें",
                 "microphone_tip": "ऊपर दाईं ओर माइक्रोफ़ोन टैप करें और \"मेरी खरीदारी सूची में कैंडी जोड़ें\" कहें"
             },
+            "developer-tools": {
+                "tabs": {
+                    "services": {
+                        "title": "सेवाएं"
+                    },
+                    "events": {
+                        "title": "घटनाओं"
+                    },
+                    "templates": {
+                        "title": "टेम्पलेट्स"
+                    },
+                    "mqtt": {
+                        "title": "MQTT"
+                    }
+                }
+            },
             "config": {
                 "zwave": {
-                    "caption": "Z-Wave"
+                    "caption": "Z-Wave",
+                    "node_config": {
+                        "set_config_parameter": "कॉन्फ़िगरेशन पैरामीटर सेट करें"
+                    }
                 },
                 "automation": {
                     "editor": {
@@ -156,6 +175,26 @@
                             }
                         }
                     }
+                },
+                "area_registry": {
+                    "picker": {
+                        "create_area": "Crea un area"
+                    }
+                },
+                "zha": {
+                    "services": {
+                        "updateDeviceName": "Imposta un nome personalizzato per questo dispositivo nel registro del dispositivo."
+                    },
+                    "device_card": {
+                        "device_name_placeholder": "Nome assegnato dall'utente",
+                        "area_picker_label": "Area",
+                        "update_name_button": "Aggiorna Nome"
+                    },
+                    "add_device_page": {
+                        "header": "Zigbee Home Automation - Aggiungi dispositivi",
+                        "spinner": "Ricerca di dispositivi ZHA Zigbee ...",
+                        "discovery_text": "I dispositivi rilevati verranno visualizzati qui. Seguire le istruzioni per il \/ i dispositivo \/ i e posizionare il \/ i dispositivo \/ i in modalità accoppiamento."
+                    }
                 }
             },
             "page-authorize": {
@@ -170,11 +209,20 @@
                         }
                     }
                 }
+            },
+            "page-onboarding": {
+                "user": {
+                    "data": {
+                        "password_confirm": "Conferma la password"
+                    },
+                    "error": {
+                        "password_not_match": "Password non trovata"
+                    }
+                }
             }
         },
         "sidebar": {
-            "log_out": "लॉग आउट",
-            "developer_tools": "डेवलपर उपकरण"
+            "log_out": "लॉग आउट"
         }
     },
     "domain": {

@@ -15,7 +15,8 @@ import computeStateName from "../../common/entity/compute_state_name";
 import computeStateDomain from "../../common/entity/compute_state_domain";
 import isComponentLoaded from "../../common/config/is_component_loaded";
 import { DOMAINS_MORE_INFO_NO_HISTORY } from "../../common/const";
-import EventsMixin from "../../mixins/events-mixin";
+import { EventsMixin } from "../../mixins/events-mixin";
+import { computeRTL } from "../../common/util/compute_rtl";
 
 const DOMAINS_NO_INFO = ["camera", "configurator", "history_graph"];
 /*
@@ -58,12 +59,18 @@ class MoreInfoControls extends EventsMixin(PolymerElement) {
         :host([domain="camera"]) paper-dialog-scrollable {
           margin: 0 -24px -21px;
         }
+
+        :host([rtl]) app-toolbar {
+          direction: rtl;
+          text-align: right;
+        }
       </style>
 
       <app-toolbar>
         <paper-icon-button
+          aria-label="Dismiss dialog"
           icon="hass:close"
-          dialog-dismiss=""
+          dialog-dismiss
         ></paper-icon-button>
         <div class="main-title" main-title="" on-click="enlarge">
           [[_computeStateName(stateObj)]]
@@ -147,6 +154,11 @@ class MoreInfoControls extends EventsMixin(PolymerElement) {
           hoursToShow: 24,
         },
       },
+      rtl: {
+        type: Boolean,
+        reflectToAttribute: true,
+        computed: "_computeRTL(hass)",
+      },
     };
   }
 
@@ -181,14 +193,19 @@ class MoreInfoControls extends EventsMixin(PolymerElement) {
     }
 
     if (this._cacheConfig.cacheKey !== `more_info.${newVal.entity_id}`) {
-      this._cacheConfig = Object.assign({}, this._cacheConfig, {
+      this._cacheConfig = {
+        ...this._cacheConfig,
         cacheKey: `more_info.${newVal.entity_id}`,
-      });
+      };
     }
   }
 
   _gotoSettings() {
     this.fire("more-info-page", { page: "settings" });
+  }
+
+  _computeRTL(hass) {
+    return computeRTL(hass);
   }
 }
 customElements.define("more-info-controls", MoreInfoControls);

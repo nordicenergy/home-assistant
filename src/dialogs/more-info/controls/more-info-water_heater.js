@@ -1,5 +1,4 @@
 import "@polymer/iron-flex-layout/iron-flex-layout-classes";
-import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
 import "@polymer/paper-item/paper-item";
 import "@polymer/paper-listbox/paper-listbox";
 import "@polymer/paper-toggle-button/paper-toggle-button";
@@ -10,10 +9,12 @@ import { PolymerElement } from "@polymer/polymer/polymer-element";
 
 import "../../../components/ha-water_heater-control";
 import "../../../components/ha-paper-slider";
+import "../../../components/ha-paper-dropdown-menu";
 
 import featureClassNames from "../../../common/entity/feature_class_names";
+import { supportsFeature } from "../../../common/entity/supports-feature";
 
-import EventsMixin from "../../../mixins/events-mixin";
+import { EventsMixin } from "../../../mixins/events-mixin";
 import LocalizeMixin from "../../../mixins/localize-mixin";
 
 /*
@@ -39,7 +40,7 @@ class MoreInfoWaterHeater extends LocalizeMixin(EventsMixin(PolymerElement)) {
 
         .container-operation_list iron-icon,
 
-        paper-dropdown-menu {
+        ha-paper-dropdown-menu {
           width: 100%;
         }
 
@@ -92,26 +93,27 @@ class MoreInfoWaterHeater extends LocalizeMixin(EventsMixin(PolymerElement)) {
         <template is="dom-if" if="[[supportsOperationMode(stateObj)]]">
           <div class="container-operation_list">
             <div class="controls">
-              <paper-dropdown-menu
+              <ha-paper-dropdown-menu
                 label-float=""
                 dynamic-align=""
                 label="[[localize('ui.card.water_heater.operation')]]"
               >
                 <paper-listbox
                   slot="dropdown-content"
-                  selected="{{operationIndex}}"
+                  selected="[[stateObj.attributes.operation_mode]]"
+                  attr-for-selected="item-name"
+                  on-selected-changed="handleOperationmodeChanged"
                 >
                   <template
                     is="dom-repeat"
                     items="[[stateObj.attributes.operation_list]]"
-                    on-dom-change="handleOperationListUpdate"
                   >
-                    <paper-item
+                    <paper-item item-name$="[[item]]"
                       >[[_localizeOperationMode(localize, item)]]</paper-item
                     >
                   </template>
                 </paper-listbox>
-              </paper-dropdown-menu>
+              </ha-paper-dropdown-menu>
             </div>
           </div>
         </template>
@@ -145,11 +147,6 @@ class MoreInfoWaterHeater extends LocalizeMixin(EventsMixin(PolymerElement)) {
         observer: "stateObjChanged",
       },
 
-      operationIndex: {
-        type: Number,
-        value: -1,
-        observer: "handleOperationmodeChanged",
-      },
       awayToggleChecked: Boolean,
     };
   }
@@ -172,16 +169,6 @@ class MoreInfoWaterHeater extends LocalizeMixin(EventsMixin(PolymerElement)) {
     }
   }
 
-  handleOperationListUpdate() {
-    // force polymer to recognize selected item change (to update actual label)
-    this.operationIndex = -1;
-    if (this.stateObj.attributes.operation_list) {
-      this.operationIndex = this.stateObj.attributes.operation_list.indexOf(
-        this.stateObj.attributes.operation_mode
-      );
-    }
-  }
-
   computeTemperatureStepSize(hass, stateObj) {
     if (stateObj.attributes.target_temp_step) {
       return stateObj.attributes.target_temp_step;
@@ -198,17 +185,17 @@ class MoreInfoWaterHeater extends LocalizeMixin(EventsMixin(PolymerElement)) {
 
   supportsTemperature(stateObj) {
     return (
-      (stateObj.attributes.supported_features & 1) !== 0 &&
+      supportsFeature(stateObj, 1) &&
       typeof stateObj.attributes.temperature === "number"
     );
   }
 
   supportsOperationMode(stateObj) {
-    return (stateObj.attributes.supported_features & 2) !== 0;
+    return supportsFeature(stateObj, 2);
   }
 
   supportsAwayMode(stateObj) {
-    return (stateObj.attributes.supported_features & 4) !== 0;
+    return supportsFeature(stateObj, 4);
   }
 
   computeClassNames(stateObj) {
@@ -238,16 +225,12 @@ class MoreInfoWaterHeater extends LocalizeMixin(EventsMixin(PolymerElement)) {
     this.callServiceHelper("set_away_mode", { away_mode: newVal });
   }
 
-  handleOperationmodeChanged(operationIndex) {
-    // Selected Option will transition to '' before transitioning to new value
-    if (operationIndex === "" || operationIndex === -1) return;
-    const operationInput = this.stateObj.attributes.operation_list[
-      operationIndex
-    ];
-    if (operationInput === this.stateObj.attributes.operation_mode) return;
-
+  handleOperationmodeChanged(ev) {
+    const oldVal = this.stateObj.attributes.operation_mode;
+    const newVal = ev.detail.value;
+    if (!newVal || oldVal === newVal) return;
     this.callServiceHelper("set_operation_mode", {
-      operation_mode: operationInput,
+      operation_mode: newVal,
     });
   }
 

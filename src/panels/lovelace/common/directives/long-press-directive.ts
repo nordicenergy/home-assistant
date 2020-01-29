@@ -16,9 +16,11 @@ interface LongPressElement extends Element {
 
 class LongPress extends HTMLElement implements LongPress {
   public holdTime: number;
-  protected ripple: any;
+  public ripple: any;
   protected timer: number | undefined;
   protected held: boolean;
+  protected cooldownStart: boolean;
+  protected cooldownEnd: boolean;
 
   constructor() {
     super();
@@ -26,6 +28,8 @@ class LongPress extends HTMLElement implements LongPress {
     this.ripple = document.createElement("mwc-ripple");
     this.timer = undefined;
     this.held = false;
+    this.cooldownStart = false;
+    this.cooldownEnd = false;
   }
 
   public connectedCallback() {
@@ -41,7 +45,8 @@ class LongPress extends HTMLElement implements LongPress {
     this.ripple.primary = true;
 
     [
-      isTouch ? "touchcancel" : "mouseout",
+      "touchcancel",
+      "mouseout",
       "mouseup",
       "touchmove",
       "mousewheel",
@@ -80,6 +85,9 @@ class LongPress extends HTMLElement implements LongPress {
     });
 
     const clickStart = (ev: Event) => {
+      if (this.cooldownStart) {
+        return;
+      }
       this.held = false;
       let x;
       let y;
@@ -94,27 +102,41 @@ class LongPress extends HTMLElement implements LongPress {
         this.startAnimation(x, y);
         this.held = true;
       }, this.holdTime);
+
+      this.cooldownStart = true;
+      window.setTimeout(() => (this.cooldownStart = false), 100);
     };
 
-    const clickEnd = () => {
-      clearTimeout(this.timer);
-      this.stopAnimation();
-      if (isTouch && this.timer === undefined) {
+    const clickEnd = (ev: Event) => {
+      if (
+        this.cooldownEnd ||
+        (["touchend", "touchcancel"].includes(ev.type) &&
+          this.timer === undefined)
+      ) {
         return;
       }
+      clearTimeout(this.timer);
+      this.stopAnimation();
       this.timer = undefined;
       if (this.held) {
         element.dispatchEvent(new Event("ha-hold"));
       } else {
         element.dispatchEvent(new Event("ha-click"));
       }
+      this.cooldownEnd = true;
+      window.setTimeout(() => (this.cooldownEnd = false), 100);
     };
 
-    if (isTouch) {
-      element.addEventListener("touchstart", clickStart, { passive: true });
-      element.addEventListener("touchend", clickEnd);
-      element.addEventListener("touchcancel", clickEnd);
-    } else {
+    element.addEventListener("touchstart", clickStart, { passive: true });
+    element.addEventListener("touchend", clickEnd);
+    element.addEventListener("touchcancel", clickEnd);
+
+    // iOS 13 sends a complete normal touchstart-touchend series of events followed by a mousedown-click series.
+    // That might be a bug, but until it's fixed, this should make long-press work.
+    // If it's not a bug that is fixed, this might need updating with the next iOS version.
+    // Note that all events (both touch and mouse) must be listened for in order to work on computers with both mouse and touchscreen.
+    const isIOS13 = window.navigator.userAgent.match(/iPhone OS 13_/);
+    if (!isIOS13) {
       element.addEventListener("mousedown", clickStart, { passive: true });
       element.addEventListener("click", clickEnd);
     }
@@ -160,7 +182,6 @@ export const longPressBind = (element: LongPressElement) => {
   longpress.bind(element);
 };
 
-export const longPress = () =>
-  directive((part: PropertyPart) => {
-    longPressBind(part.committer.element);
-  });
+export const longPress = directive(() => (part: PropertyPart) => {
+  longPressBind(part.committer.element);
+});

@@ -1,6 +1,5 @@
 import "@polymer/iron-flex-layout/iron-flex-layout-classes";
 import "@polymer/iron-icon/iron-icon";
-import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
 import "@polymer/paper-icon-button/paper-icon-button";
 import "@polymer/paper-item/paper-item";
 import "@polymer/paper-listbox/paper-listbox";
@@ -8,6 +7,8 @@ import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
 import "../../../components/ha-attributes";
+import "../../../components/ha-paper-dropdown-menu";
+import { supportsFeature } from "../../../common/entity/supports-feature";
 
 class MoreInfoVacuum extends PolymerElement {
   static get template() {
@@ -103,20 +104,25 @@ class MoreInfoVacuum extends PolymerElement {
 
       <div hidden$="[[!supportsFanSpeed(stateObj)]]">
         <div class="horizontal justified layout">
-          <paper-dropdown-menu
+          <ha-paper-dropdown-menu
             label-float=""
             dynamic-align=""
             label="Fan speed"
           >
-            <paper-listbox slot="dropdown-content" selected="{{fanSpeedIndex}}">
+            <paper-listbox
+              slot="dropdown-content"
+              selected="[[stateObj.attributes.fan_speed]]"
+              on-selected-changed="fanSpeedChanged"
+              attr-for-selected="item-name"
+            >
               <template
                 is="dom-repeat"
                 items="[[stateObj.attributes.fan_speed_list]]"
               >
-                <paper-item>[[item]]</paper-item>
+                <paper-item item-name$="[[item]]">[[item]]</paper-item>
               </template>
             </paper-listbox>
-          </paper-dropdown-menu>
+          </ha-paper-dropdown-menu>
           <div
             style="justify-content: center; align-self: center; padding-top: 1.3em"
           >
@@ -149,77 +155,65 @@ class MoreInfoVacuum extends PolymerElement {
       stateObj: {
         type: Object,
       },
-
-      fanSpeedIndex: {
-        type: Number,
-        value: -1,
-        observer: "fanSpeedChanged",
-      },
     };
   }
 
-  /* eslint-disable no-bitwise */
-
   supportsPause(stateObj) {
-    return (stateObj.attributes.supported_features & 4) !== 0;
+    return supportsFeature(stateObj, 4);
   }
 
   supportsStop(stateObj) {
-    return (stateObj.attributes.supported_features & 8) !== 0;
+    return supportsFeature(stateObj, 8);
   }
 
   supportsReturnHome(stateObj) {
-    return (stateObj.attributes.supported_features & 16) !== 0;
+    return supportsFeature(stateObj, 16);
   }
 
   supportsFanSpeed(stateObj) {
-    return (stateObj.attributes.supported_features & 32) !== 0;
+    return supportsFeature(stateObj, 32);
   }
 
   supportsBattery(stateObj) {
-    return (stateObj.attributes.supported_features & 64) !== 0;
+    return supportsFeature(stateObj, 64);
   }
 
   supportsStatus(stateObj) {
-    return (stateObj.attributes.supported_features & 128) !== 0;
+    return supportsFeature(stateObj, 128);
   }
 
   supportsLocate(stateObj) {
-    return (stateObj.attributes.supported_features & 512) !== 0;
+    return supportsFeature(stateObj, 512);
   }
 
   supportsCleanSpot(stateObj) {
-    return (stateObj.attributes.supported_features & 1024) !== 0;
+    return supportsFeature(stateObj, 1024);
   }
 
   supportsStart(stateObj) {
-    return (stateObj.attributes.supported_features & 8192) !== 0;
+    return supportsFeature(stateObj, 8192);
   }
 
   supportsCommandBar(stateObj) {
     return (
-      ((stateObj.attributes.supported_features & 4) !== 0) |
-      ((stateObj.attributes.supported_features & 8) !== 0) |
-      ((stateObj.attributes.supported_features & 16) !== 0) |
-      ((stateObj.attributes.supported_features & 512) !== 0) |
-      ((stateObj.attributes.supported_features & 1024) !== 0) |
-      ((stateObj.attributes.supported_features & 8192) !== 0)
+      supportsFeature(stateObj, 4) |
+      supportsFeature(stateObj, 8) |
+      supportsFeature(stateObj, 16) |
+      supportsFeature(stateObj, 512) |
+      supportsFeature(stateObj, 1024) |
+      supportsFeature(stateObj, 8192)
     );
   }
 
-  /* eslint-enable no-bitwise */
+  fanSpeedChanged(ev) {
+    var oldVal = this.stateObj.attributes.fan_speed;
+    var newVal = ev.detail.value;
 
-  fanSpeedChanged(fanSpeedIndex) {
-    var fanSpeedInput;
-    // Selected Option will transition to '' before transitioning to new value
-    if (fanSpeedIndex === "" || fanSpeedIndex === -1) return;
-
-    fanSpeedInput = this.stateObj.attributes.fan_speed_list[fanSpeedIndex];
-    if (fanSpeedInput === this.stateObj.attributes.fan_speed) return;
+    if (!newVal || oldVal === newVal) return;
 
     this.hass.callService("vacuum", "set_fan_speed", {
       entity_id: this.stateObj.entity_id,
-      fan_speed: fanSpeedInput,
+      fan_speed: newVal,
     });
   }
 

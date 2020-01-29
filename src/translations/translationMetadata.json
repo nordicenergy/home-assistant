@@ -1,6 +1,10 @@
 {
+  "af": {
+    "nativeName": "Afrikaans"
+  },
   "ar": {
-    "nativeName": "العربية"
+    "nativeName": "العربية",
+    "isRTL": true
   },
   "bg": {
     "nativeName": "Български"
@@ -38,6 +42,9 @@
   "et": {
     "nativeName": "Eesti"
   },
+  "eu": {
+    "nativeName": "Euskara"
+  },
   "fa": {
     "nativeName": "فارسی"
   },
@@ -63,11 +70,17 @@
   "hu": {
     "nativeName": "Magyar"
   },
+  "hy": {
+    "nativeName": "Հայերեն"
+  },
   "id": {
     "nativeName": "Indonesia"
   },
   "it": {
     "nativeName": "Italiano"
+  },
+  "is": {
+    "nativeName": "Íslenska"
   },
   "ja": {
     "nativeName": "日本語"
@@ -87,11 +100,11 @@
   "nl": {
     "nativeName": "Nederlands"
   },
+  "nb": {
+    "nativeName": "Norsk Bokmål"
+  },
   "nn": {
     "nativeName": "Norsk Nynorsk"
-  },
-  "no": {
-    "nativeName": "Norsk"
   },
   "pl": {
     "nativeName": "Polski"

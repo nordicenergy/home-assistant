@@ -4,6 +4,7 @@ import { PolymerElement } from "@polymer/polymer/polymer-element";
 import "../ha-relative-time";
 import "./state-badge";
 import computeStateName from "../../common/entity/compute_state_name";
+import { computeRTL } from "../../common/util/compute_rtl";
 
 class StateInfo extends PolymerElement {
   static get template() {
@@ -25,8 +26,18 @@ class StateInfo extends PolymerElement {
           float: left;
         }
 
+        :host([rtl]) state-badge {
+          float: right;
+        }
+
         .info {
           margin-left: 56px;
+        }
+
+        :host([rtl]) .info {
+          margin-right: 56px;
+          margin-left: 0;
+          text-align: right;
         }
 
         .name {
@@ -80,18 +91,26 @@ class StateInfo extends PolymerElement {
 
   static get properties() {
     return {
-      detailed: {
-        type: Boolean,
-        value: false,
-      },
       hass: Object,
       stateObj: Object,
-      inDialog: Boolean,
+      inDialog: {
+        type: Boolean,
+        value: () => false,
+      },
+      rtl: {
+        type: Boolean,
+        reflectToAttribute: true,
+        computed: "computeRTL(hass)",
+      },
     };
   }
 
   computeStateName(stateObj) {
     return computeStateName(stateObj);
+  }
+
+  computeRTL(hass) {
+    return computeRTL(hass);
   }
 }
 

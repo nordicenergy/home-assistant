@@ -1,18 +1,14 @@
-import { html, LitElement, PropertyDeclarations } from "@polymer/lit-element";
-import { TemplateResult } from "lit-html";
+import {
+  html,
+  LitElement,
+  TemplateResult,
+  customElement,
+  property,
+} from "lit-element";
 import "@polymer/paper-dropdown-menu/paper-dropdown-menu";
 import "@polymer/paper-item/paper-item";
 import "@polymer/paper-listbox/paper-listbox";
 import "@polymer/paper-toggle-button/paper-toggle-button";
-
-import { processEditorEntities } from "../process-editor-entities";
-import { EntitiesEditorEvent, EditorTarget } from "../types";
-import { hassLocalizeLitMixin } from "../../../../mixins/lit-localize-mixin";
-import { HomeAssistant } from "../../../../types";
-import { LovelaceCardEditor } from "../../types";
-import { fireEvent } from "../../../../common/dom/fire_event";
-import { Config, ConfigEntity } from "../../cards/hui-entities-card";
-import { configElementStyle } from "./config-elements-style";
 
 import "../../../../components/entity/state-badge";
 import "../../components/hui-theme-select-editor";
@@ -20,14 +16,48 @@ import "../../components/hui-entity-editor";
 import "../../../../components/ha-card";
 import "../../../../components/ha-icon";
 
-export class HuiEntitiesCardEditor extends hassLocalizeLitMixin(LitElement)
-  implements LovelaceCardEditor {
-  public hass?: HomeAssistant;
-  private _config?: Config;
-  private _configEntities?: ConfigEntity[];
+import { processEditorEntities } from "../process-editor-entities";
+import { struct } from "../../common/structs/struct";
+import { EntitiesEditorEvent, EditorTarget } from "../types";
+import { HomeAssistant } from "../../../../types";
+import { LovelaceCardEditor } from "../../types";
+import { fireEvent } from "../../../../common/dom/fire_event";
+import { configElementStyle } from "./config-elements-style";
+import {
+  EntitiesCardConfig,
+  EntitiesCardEntityConfig,
+} from "../../cards/types";
 
-  static get properties(): PropertyDeclarations {
-    return { hass: {}, _config: {}, _configEntities: {} };
+const entitiesConfigStruct = struct.union([
+  {
+    entity: "entity-id",
+    name: "string?",
+    icon: "icon?",
+  },
+  "entity-id",
+]);
+
+const cardConfigStruct = struct({
+  type: "string",
+  title: "string|number?",
+  theme: "string?",
+  show_header_toggle: "boolean?",
+  entities: [entitiesConfigStruct],
+});
+
+@customElement("hui-entities-card-editor")
+export class HuiEntitiesCardEditor extends LitElement
+  implements LovelaceCardEditor {
+  @property() public hass?: HomeAssistant;
+
+  @property() private _config?: EntitiesCardConfig;
+
+  @property() private _configEntities?: EntitiesCardEntityConfig[];
+
+  public setConfig(config: EntitiesCardConfig): void {
+    config = cardConfigStruct(config);
+    this._config = config;
+    this._configEntities = processEditorEntities(config.entities);
   }
 
   get _title(): string {
@@ -38,12 +68,7 @@ export class HuiEntitiesCardEditor extends hassLocalizeLitMixin(LitElement)
     return this._config!.theme || "Backend-selected";
   }
 
-  public setConfig(config: Config): void {
-    this._config = { type: "entities", ...config };
-    this._configEntities = processEditorEntities(config.entities);
-  }
-
-  protected render(): TemplateResult {
+  protected render(): TemplateResult | void {
     if (!this.hass) {
       return html``;
     }
@@ -53,7 +78,7 @@ export class HuiEntitiesCardEditor extends hassLocalizeLitMixin(LitElement)
       <div class="card-config">
         <paper-input
           label="Title"
-          value="${this._title}"
+          .value="${this._title}"
           .configValue="${"title"}"
           @value-changed="${this._valueChanged}"
         ></paper-input>
@@ -96,11 +121,15 @@ export class HuiEntitiesCardEditor extends hassLocalizeLitMixin(LitElement)
       this._config.entities = ev.detail.entities;
       this._configEntities = processEditorEntities(this._config.entities);
     } else if (target.configValue) {
-      this._config = {
-        ...this._config,
-        [target.configValue]:
-          target.checked !== undefined ? target.checked : target.value,
-      };
+      if (target.value === "") {
+        delete this._config[target.configValue!];
+      } else {
+        this._config = {
+          ...this._config,
+          [target.configValue]:
+            target.checked !== undefined ? target.checked : target.value,
+        };
+      }
     }
 
     fireEvent(this, "config-changed", { config: this._config });
@@ -112,5 +141,3 @@ declare global {
     "hui-entities-card-editor": HuiEntitiesCardEditor;
   }
 }
-
-customElements.define("hui-entities-card-editor", HuiEntitiesCardEditor);

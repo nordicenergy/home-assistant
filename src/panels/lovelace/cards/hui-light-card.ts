@@ -2,66 +2,51 @@ import {
   html,
   LitElement,
   PropertyValues,
-  PropertyDeclarations,
-} from "@polymer/lit-element";
-import { TemplateResult } from "lit-html";
-
-import { fireEvent } from "../../../common/dom/fire_event";
-import { styleMap } from "lit-html/directives/styleMap";
-import { jQuery } from "../../../resources/jquery";
-import { roundSliderStyle } from "../../../resources/jquery.roundslider";
-import { HomeAssistant, LightEntity } from "../../../types";
-import { hassLocalizeLitMixin } from "../../../mixins/lit-localize-mixin";
-import { LovelaceCard } from "../types";
-import { LovelaceCardConfig } from "../../../data/lovelace";
-import { longPress } from "../common/directives/long-press-directive";
+  TemplateResult,
+  property,
+  customElement,
+} from "lit-element";
+import "@polymer/paper-icon-button/paper-icon-button";
+import "@thomasloven/round-slider";
 
 import stateIcon from "../../../common/entity/state_icon";
 import computeStateName from "../../../common/entity/compute_state_name";
 import applyThemesOnElement from "../../../common/dom/apply_themes_on_element";
-import { hasConfigOrEntityChanged } from "../common/has-changed";
 
 import "../../../components/ha-card";
 import "../../../components/ha-icon";
+import "../components/hui-warning";
+import "../components/hui-unavailable";
 
-const lightConfig = {
-  radius: 80,
-  step: 1,
-  circleShape: "pie",
-  startAngle: 315,
-  width: 5,
-  min: 1,
-  max: 100,
-  sliderType: "min-range",
-  lineCap: "round",
-  handleSize: "+12",
-  showTooltip: false,
-};
+import { fireEvent } from "../../../common/dom/fire_event";
+import { styleMap } from "lit-html/directives/style-map";
+import { HomeAssistant, LightEntity } from "../../../types";
+import { LovelaceCard, LovelaceCardEditor } from "../types";
+import { hasConfigOrEntityChanged } from "../common/has-changed";
+import { toggleEntity } from "../common/entity/toggle-entity";
+import { LightCardConfig } from "./types";
 
-interface Config extends LovelaceCardConfig {
-  entity: string;
-  name?: string;
-  theme?: string;
-}
-
-export class HuiLightCard extends hassLocalizeLitMixin(LitElement)
-  implements LovelaceCard {
-  public hass?: HomeAssistant;
-  private _config?: Config;
-  private _brightnessTimout?: number;
-
-  static get properties(): PropertyDeclarations {
-    return {
-      hass: {},
-      _config: {},
-    };
+@customElement("hui-light-card")
+export class HuiLightCard extends LitElement implements LovelaceCard {
+  public static async getConfigElement(): Promise<LovelaceCardEditor> {
+    await import(/* webpackChunkName: "hui-light-card-editor" */ "../editor/config-elements/hui-light-card-editor");
+    return document.createElement("hui-light-card-editor");
   }
+  public static getStubConfig(): object {
+    return { entity: "" };
+  }
+
+  @property() public hass?: HomeAssistant;
+
+  @property() private _config?: LightCardConfig;
+
+  private _brightnessTimout?: number;
 
   public getCardSize(): number {
     return 2;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: LightCardConfig): void {
     if (!config.entity || config.entity.split(".")[0] !== "light") {
       throw new Error("Specify an entity from within the light domain.");
     }
@@ -69,53 +54,69 @@ export class HuiLightCard extends hassLocalizeLitMixin(LitElement)
     this._config = { theme: "default", ...config };
   }
 
-  protected render(): TemplateResult {
+  protected render(): TemplateResult | void {
     if (!this.hass || !this._config) {
       return html``;
     }
 
     const stateObj = this.hass.states[this._config!.entity] as LightEntity;
+    const brightness =
+      Math.round((stateObj.attributes.brightness / 254) * 100) || 0;
+
+    if (!stateObj) {
+      return html`
+        <hui-warning
+          >${this.hass.localize(
+            "ui.panel.lovelace.warning.entity_not_found",
+            "entity",
+            this._config.entity
+          )}</hui-warning
+        >
+      `;
+    }
 
     return html`
       ${this.renderStyle()}
       <ha-card>
-        ${
-          !stateObj
-            ? html`
-                <div class="not-found">
-                  Entity not available: ${this._config.entity}
-                </div>
-              `
-            : html`
-                <div id="light"></div>
-                <div id="tooltip">
-                  <div class="icon-state">
-                    <ha-icon
-                      data-state="${stateObj.state}"
-                      .icon="${stateIcon(stateObj)}"
-                      style="${
-                        styleMap({
-                          filter: this._computeBrightness(stateObj),
-                          color: this._computeColor(stateObj),
-                        })
-                      }"
-                      @ha-click="${() => this._handleClick(false)}"
-                      @ha-hold="${() => this._handleClick(true)}"
-                      .longPress="${longPress()}"
-                    ></ha-icon>
-                    <div
-                      class="brightness"
-                      @ha-click="${() => this._handleClick(false)}"
-                      @ha-hold="${() => this._handleClick(true)}"
-                      .longPress="${longPress()}"
-                    ></div>
-                    <div class="name">
-                      ${this._config.name || computeStateName(stateObj)}
-                    </div>
-                  </div>
-                </div>
-              `
-        }
+        ${stateObj.state === "unavailable"
+          ? html`
+              <hui-unavailable
+                .text="${this.hass.localize("state.default.unavailable")}"
+              ></hui-unavailable>
+            `
+          : ""}
+        <paper-icon-button
+          icon="hass:dots-vertical"
+          class="more-info"
+          @click="${this._handleMoreInfo}"
+        ></paper-icon-button>
+        <div id="light">
+          <round-slider
+            .value=${brightness}
+            @value-changing=${this._dragEvent}
+            @value-changed=${this._setBrightness}
+          ></round-slider>
+        </div>
+        <div id="tooltip">
+          <div class="icon-state">
+            <ha-icon
+              class="light-icon"
+              data-state="${stateObj.state}"
+              .icon="${stateIcon(stateObj)}"
+              style="${styleMap({
+                filter: this._computeBrightness(stateObj),
+                color: this._computeColor(stateObj),
+              })}"
+              @click="${this._handleTap}"
+            ></ha-icon>
+            <div class="brightness" @ha-click="${this._handleTap}">
+              ${brightness} %
+            </div>
+            <div class="name">
+              ${this._config.name || computeStateName(stateObj)}
+            </div>
+          </div>
+        </div>
       </ha-card>
     `;
   }
@@ -124,30 +125,17 @@ export class HuiLightCard extends hassLocalizeLitMixin(LitElement)
     return hasConfigOrEntityChanged(this, changedProps);
   }
 
-  protected firstUpdated(): void {
-    const brightness = this.hass!.states[this._config!.entity].attributes
-      .brightness;
-    jQuery("#light", this.shadowRoot).roundSlider({
-      ...lightConfig,
-      change: (value) => this._setBrightness(value),
-      drag: (value) => this._dragEvent(value),
-      start: () => this._showBrightness(),
-      stop: () => this._hideBrightness(),
-    });
-    this.shadowRoot!.querySelector(".brightness")!.innerHTML =
-      (Math.round((brightness / 254) * 100) || 0) + "%";
-  }
-
   protected updated(changedProps: PropertyValues): void {
+    super.updated(changedProps);
     if (!this._config || !this.hass) {
       return;
     }
 
-    const attrs = this.hass!.states[this._config!.entity].attributes;
+    const stateObj = this.hass!.states[this._config!.entity];
 
-    jQuery("#light", this.shadowRoot).roundSlider({
-      value: Math.round((attrs.brightness / 254) * 100) || 0,
-    });
+    if (!stateObj) {
+      return;
+    }
 
     const oldHass = changedProps.get("hass") as HomeAssistant | undefined;
     if (!oldHass || oldHass.themes !== this.hass.themes) {
@@ -157,21 +145,19 @@ export class HuiLightCard extends hassLocalizeLitMixin(LitElement)
 
   private renderStyle(): TemplateResult {
     return html`
-      ${roundSliderStyle}
       <style>
         :host {
           display: block;
         }
+
         ha-card {
           position: relative;
           overflow: hidden;
-          --brightness-font-color: white;
-          --brightness-font-text-shadow: -1px -1px 0 #000, 1px -1px 0 #000,
-            -1px 1px 0 #000, 1px 1px 0 #000;
           --name-font-size: 1.2rem;
           --brightness-font-size: 1.2rem;
           --rail-border-color: transparent;
         }
+
         #tooltip {
           position: absolute;
           top: 0;
@@ -181,6 +167,7 @@ export class HuiLightCard extends hassLocalizeLitMixin(LitElement)
           text-align: center;
           z-index: 15;
         }
+
         .icon-state {
           display: block;
           margin: auto;
@@ -188,86 +175,82 @@ export class HuiLightCard extends hassLocalizeLitMixin(LitElement)
           height: 100%;
           transform: translate(0, 25%);
         }
+
         #light {
           margin: 0 auto;
-          padding-top: 16px;
-          padding-bottom: 16px;
+          padding-top: 0;
+          padding-bottom: 32px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 160px;
+          width: 160px;
         }
-        #light .rs-bar.rs-transition.rs-first,
-        .rs-bar.rs-transition.rs-second {
+        #light round-slider {
           z-index: 20 !important;
+          margin: 0 auto;
+          display: inline-block;
+          --round-slider-path-color: var(--disabled-text-color);
+          --round-slider-bar-color: var(--primary-color);
         }
-        #light .rs-range-color {
-          background-color: var(--primary-color);
-        }
-        #light .rs-path-color {
-          background-color: var(--disabled-text-color);
-        }
-        #light .rs-handle {
-          background-color: var(--paper-card-background-color, white);
-          padding: 7px;
-          border: 2px solid var(--disabled-text-color);
-        }
-        #light .rs-handle.rs-focus {
-          border-color: var(--primary-color);
-        }
-        #light .rs-handle:after {
-          border-color: var(--primary-color);
-          background-color: var(--primary-color);
-        }
-        #light .rs-border {
-          border-color: var(--rail-border-color);
-        }
-        #light .rs-inner.rs-bg-color.rs-border,
-        #light .rs-overlay.rs-transition.rs-bg-color {
-          background-color: var(--paper-card-background-color, white);
-        }
-        ha-icon {
+
+        .light-icon {
           margin: auto;
           width: 76px;
           height: 76px;
           color: var(--paper-item-icon-color, #44739e);
           cursor: pointer;
         }
-        ha-icon[data-state="on"] {
+
+        .light-icon[data-state="on"] {
           color: var(--paper-item-icon-active-color, #fdd835);
         }
-        ha-icon[data-state="unavailable"] {
+
+        .light-icon[data-state="unavailable"] {
           color: var(--state-icon-unavailable-color);
         }
+
         .name {
-          padding-top: 40px;
+          padding-top: 32px;
           font-size: var(--name-font-size);
         }
+
         .brightness {
           font-size: var(--brightness-font-size);
           position: absolute;
           margin: 0 auto;
           left: 50%;
-          top: 10%;
+          top: 45%;
           transform: translate(-50%);
           opacity: 0;
           transition: opacity 0.5s ease-in-out;
           -moz-transition: opacity 0.5s ease-in-out;
           -webkit-transition: opacity 0.5s ease-in-out;
           cursor: pointer;
-          color: var(--brightness-font-color);
-          text-shadow: var(--brightness-font-text-shadow);
+          pointer-events: none;
         }
+
         .show_brightness {
           opacity: 1;
         }
-        .not-found {
-          flex: 1;
-          background-color: yellow;
-          padding: 8px;
+
+        .more-info {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          right: 0;
+          z-index: 25;
+          color: var(--secondary-text-color);
         }
       </style>
     `;
   }
 
   private _dragEvent(e: any): void {
-    this.shadowRoot!.querySelector(".brightness")!.innerHTML = e.value + "%";
+    this.shadowRoot!.querySelector(".brightness")!.innerHTML =
+      e.detail.value + "%";
+    this._showBrightness();
+    this._hideBrightness();
   }
 
   private _showBrightness(): void {
@@ -288,7 +271,7 @@ export class HuiLightCard extends hassLocalizeLitMixin(LitElement)
   private _setBrightness(e: any): void {
     this.hass!.callService("light", "turn_on", {
       entity_id: this._config!.entity,
-      brightness_pct: e.value,
+      brightness_pct: e.detail.value,
     });
   }
 
@@ -311,18 +294,13 @@ export class HuiLightCard extends hassLocalizeLitMixin(LitElement)
     return `hsl(${hue}, 100%, ${100 - sat / 2}%)`;
   }
 
-  private _handleClick(hold: boolean): void {
-    const entityId = this._config!.entity;
+  private _handleTap() {
+    toggleEntity(this.hass!, this._config!.entity!);
+  }
 
-    if (hold) {
-      fireEvent(this, "hass-more-info", {
-        entityId,
-      });
-      return;
-    }
-
-    this.hass!.callService("light", "toggle", {
-      entity_id: entityId,
+  private _handleMoreInfo() {
+    fireEvent(this, "hass-more-info", {
+      entityId: this._config!.entity,
     });
   }
 }
@@ -332,5 +310,3 @@ declare global {
     "hui-light-card": HuiLightCard;
   }
 }
-
-customElements.define("hui-light-card", HuiLightCard);

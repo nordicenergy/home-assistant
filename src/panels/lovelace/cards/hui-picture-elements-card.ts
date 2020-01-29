@@ -1,32 +1,30 @@
-import { html, LitElement } from "@polymer/lit-element";
-import { TemplateResult } from "lit-html";
+import {
+  html,
+  LitElement,
+  TemplateResult,
+  property,
+  customElement,
+  css,
+  CSSResult,
+} from "lit-element";
 
-import createHuiElement from "../common/create-hui-element";
-
+import { createStyledHuiElement } from "./picture-elements/create-styled-hui-element";
 import { LovelaceCard } from "../types";
-import { LovelaceCardConfig } from "../../../data/lovelace";
 import { HomeAssistant } from "../../../types";
 import { LovelaceElementConfig, LovelaceElement } from "../elements/types";
+import { PictureElementsCardConfig } from "./types";
 
-interface Config extends LovelaceCardConfig {
-  title?: string;
-  image: string;
-  elements: LovelaceElementConfig[];
-}
-
+@customElement("hui-picture-elements-card")
 class HuiPictureElementsCard extends LitElement implements LovelaceCard {
-  private _config?: Config;
-  private _hass?: HomeAssistant;
+  @property() private _config?: PictureElementsCardConfig;
 
-  static get properties() {
-    return {
-      _config: {},
-    };
-  }
+  private _hass?: HomeAssistant;
 
   set hass(hass: HomeAssistant) {
     this._hass = hass;
-    for (const el of this.shadowRoot!.querySelectorAll("#root > *")) {
+    for (const el of Array.from(
+      this.shadowRoot!.querySelectorAll("#root > *")
+    )) {
       const element = el as LovelaceElement;
       element.hass = this._hass;
     }
@@ -36,10 +34,13 @@ class HuiPictureElementsCard extends LitElement implements LovelaceCard {
     return 4;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: PictureElementsCardConfig): void {
     if (!config) {
       throw new Error("Invalid Configuration");
-    } else if (!config.image) {
+    } else if (
+      !(config.image || config.camera_image || config.state_image) ||
+      (config.state_image && !config.entity)
+    ) {
       throw new Error("Invalid Configuration: image required");
     } else if (!Array.isArray(config.elements)) {
       throw new Error("Invalid Configuration: elements required");
@@ -48,59 +49,51 @@ class HuiPictureElementsCard extends LitElement implements LovelaceCard {
     this._config = config;
   }
 
-  protected render(): TemplateResult {
+  protected render(): TemplateResult | void {
     if (!this._config) {
       return html``;
     }
 
     return html`
-      ${this.renderStyle()}
       <ha-card .header="${this._config.title}">
         <div id="root">
-          <img src="${this._config.image}" /> ${
-            this._config.elements.map((elementConfig: LovelaceElementConfig) =>
-              this._createHuiElement(elementConfig)
-            )
-          }
+          <hui-image
+            .hass="${this._hass}"
+            .image="${this._config.image}"
+            .stateImage="${this._config.state_image}"
+            .cameraImage="${this._config.camera_image}"
+            .cameraView="${this._config.camera_view}"
+            .entity="${this._config.entity}"
+            .aspectRatio="${this._config.aspect_ratio}"
+          ></hui-image>
+          ${this._config.elements.map(
+            (elementConfig: LovelaceElementConfig) => {
+              const element = createStyledHuiElement(elementConfig);
+              element.hass = this._hass;
+
+              return element;
+            }
+          )}
         </div>
       </ha-card>
     `;
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        ha-card {
-          overflow: hidden;
-        }
-        #root {
-          position: relative;
-          overflow: hidden;
-        }
-        #root img {
-          display: block;
-          width: 100%;
-        }
-        .element {
-          position: absolute;
-          transform: translate(-50%, -50%);
-        }
-      </style>
+  static get styles(): CSSResult {
+    return css`
+      #root {
+        position: relative;
+      }
+
+      .element {
+        position: absolute;
+        transform: translate(-50%, -50%);
+      }
+
+      ha-card {
+        overflow: hidden;
+      }
     `;
-  }
-
-  private _createHuiElement(
-    elementConfig: LovelaceElementConfig
-  ): LovelaceElement {
-    const element = createHuiElement(elementConfig) as LovelaceElement;
-    element.hass = this._hass;
-    element.classList.add("element");
-
-    Object.keys(elementConfig.style).forEach((prop) => {
-      element.style.setProperty(prop, elementConfig.style[prop]);
-    });
-
-    return element;
   }
 }
 
@@ -109,5 +102,3 @@ declare global {
     "hui-picture-elements-card": HuiPictureElementsCard;
   }
 }
-
-customElements.define("hui-picture-elements-card", HuiPictureElementsCard);

@@ -1,61 +1,86 @@
 import {
   html,
   LitElement,
-  PropertyDeclarations,
   PropertyValues,
-} from "@polymer/lit-element";
+  TemplateResult,
+  CSSResult,
+  css,
+  customElement,
+  property,
+} from "lit-element";
 import { HassEntity } from "home-assistant-js-websocket";
-import { TemplateResult } from "lit-html";
-import { styleMap } from "lit-html/directives/styleMap";
+import { styleMap } from "lit-html/directives/style-map";
+import "@material/mwc-ripple";
 
 import "../../../components/ha-card";
+import "../components/hui-warning";
 
 import isValidEntityId from "../../../common/entity/valid_entity_id";
 import stateIcon from "../../../common/entity/state_icon";
 import computeStateDomain from "../../../common/entity/compute_state_domain";
 import computeStateName from "../../../common/entity/compute_state_name";
 import applyThemesOnElement from "../../../common/dom/apply_themes_on_element";
-import { toggleEntity } from "../common/entity/toggle-entity";
+import computeDomain from "../../../common/entity/compute_domain";
+
 import { HomeAssistant, LightEntity } from "../../../types";
-import { hassLocalizeLitMixin } from "../../../mixins/lit-localize-mixin";
-import { LovelaceCard } from "../types";
-import { LovelaceCardConfig } from "../../../data/lovelace";
+import { LovelaceCard, LovelaceCardEditor } from "../types";
 import { longPress } from "../common/directives/long-press-directive";
-import { fireEvent } from "../../../common/dom/fire_event";
+import { handleClick } from "../common/handle-click";
+import { DOMAINS_TOGGLE } from "../../../common/const";
+import { EntityButtonCardConfig } from "./types";
 
-interface Config extends LovelaceCardConfig {
-  entity: string;
-  name?: string;
-  icon?: string;
-  theme?: string;
-  tap_action?: "toggle" | "call-service" | "more-info";
-  hold_action?: "toggle" | "call-service" | "more-info";
-  service?: string;
-  service_data?: object;
-}
+@customElement("hui-entity-button-card")
+class HuiEntityButtonCard extends LitElement implements LovelaceCard {
+  public static async getConfigElement(): Promise<LovelaceCardEditor> {
+    await import(/* webpackChunkName: "hui-entity-button-card-editor" */ "../editor/config-elements/hui-entity-button-card-editor");
+    return document.createElement("hui-entity-button-card-editor");
+  }
 
-class HuiEntityButtonCard extends hassLocalizeLitMixin(LitElement)
-  implements LovelaceCard {
-  public hass?: HomeAssistant;
-  private _config?: Config;
-
-  static get properties(): PropertyDeclarations {
+  public static getStubConfig(): object {
     return {
-      hass: {},
-      _config: {},
+      tap_action: { action: "toggle" },
+      hold_action: { action: "more-info" },
+      show_icon: true,
+      show_name: true,
     };
   }
+
+  @property() public hass?: HomeAssistant;
+
+  @property() private _config?: EntityButtonCardConfig;
 
   public getCardSize(): number {
     return 2;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: EntityButtonCardConfig): void {
     if (!isValidEntityId(config.entity)) {
       throw new Error("Invalid Entity");
     }
 
-    this._config = { theme: "default", ...config };
+    this._config = {
+      theme: "default",
+      hold_action: { action: "more-info" },
+      show_icon: true,
+      show_name: true,
+      ...config,
+    };
+
+    if (DOMAINS_TOGGLE.has(computeDomain(config.entity))) {
+      this._config = {
+        tap_action: {
+          action: "toggle",
+        },
+        ...this._config,
+      };
+    } else {
+      this._config = {
+        tap_action: {
+          action: "more-info",
+        },
+        ...this._config,
+      };
+    }
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -73,52 +98,60 @@ class HuiEntityButtonCard extends hassLocalizeLitMixin(LitElement)
     return true;
   }
 
-  protected render(): TemplateResult {
+  protected render(): TemplateResult | void {
     if (!this._config || !this.hass) {
       return html``;
     }
     const stateObj = this.hass.states[this._config.entity];
 
+    if (!stateObj) {
+      return html`
+        <hui-warning
+          >${this.hass.localize(
+            "ui.panel.lovelace.warning.entity_not_found",
+            "entity",
+            this._config.entity
+          )}</hui-warning
+        >
+      `;
+    }
+
     return html`
-      ${this.renderStyle()}
       <ha-card
-        @ha-click="${() => this.handleClick(false)}"
-        @ha-hold="${() => this.handleClick(true)}"
+        @ha-click="${this._handleTap}"
+        @ha-hold="${this._handleHold}"
         .longPress="${longPress()}"
       >
-        ${
-          !stateObj
-            ? html`
-                <div class="not-found">
-                  Entity not available: ${this._config.entity}
-                </div>
-              `
-            : html`
-                <paper-button>
-                  <div>
-                    <ha-icon
-                      data-domain="${computeStateDomain(stateObj)}"
-                      data-state="${stateObj.state}"
-                      .icon="${this._config.icon || stateIcon(stateObj)}"
-                      style="${
-                        styleMap({
-                          filter: this._computeBrightness(stateObj),
-                          color: this._computeColor(stateObj),
-                        })
-                      }"
-                    ></ha-icon>
-                    <span>
-                      ${this._config.name || computeStateName(stateObj)}
-                    </span>
-                  </div>
-                </paper-button>
-              `
-        }
+        ${this._config.show_icon
+          ? html`
+              <ha-icon
+                data-domain="${computeStateDomain(stateObj)}"
+                data-state="${stateObj.state}"
+                .icon="${this._config.icon || stateIcon(stateObj)}"
+                style="${styleMap({
+                  filter: this._computeBrightness(stateObj),
+                  color: this._computeColor(stateObj),
+                  height: this._config.icon_height
+                    ? this._config.icon_height
+                    : "auto",
+                })}"
+              ></ha-icon>
+            `
+          : ""}
+        ${this._config.show_name
+          ? html`
+              <span>
+                ${this._config.name || computeStateName(stateObj)}
+              </span>
+            `
+          : ""}
+        <mwc-ripple></mwc-ripple>
       </ha-card>
     `;
   }
 
   protected updated(changedProps: PropertyValues): void {
+    super.updated(changedProps);
     if (!this._config || !this.hass) {
       return;
     }
@@ -128,43 +161,35 @@ class HuiEntityButtonCard extends hassLocalizeLitMixin(LitElement)
     }
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        ha-icon {
-          display: flex;
-          margin: auto;
-          width: 40%;
-          height: 40%;
-          color: var(--paper-item-icon-color, #44739e);
-        }
-        ha-icon[data-domain="light"][data-state="on"],
-        ha-icon[data-domain="switch"][data-state="on"],
-        ha-icon[data-domain="binary_sensor"][data-state="on"],
-        ha-icon[data-domain="fan"][data-state="on"],
-        ha-icon[data-domain="sun"][data-state="above_horizon"] {
-          color: var(--paper-item-icon-active-color, #fdd835);
-        }
-        ha-icon[data-state="unavailable"] {
-          color: var(--state-icon-unavailable-color);
-        }
-        state-badge {
-          display: flex;
-          margin: auto;
-          width: 40%;
-          height: 40%;
-        }
-        paper-button {
-          display: flex;
-          margin: auto;
-          text-align: center;
-        }
-        .not-found {
-          flex: 1;
-          background-color: yellow;
-          padding: 8px;
-        }
-      </style>
+  static get styles(): CSSResult {
+    return css`
+      ha-card {
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 4% 0;
+        font-size: 1.2rem;
+      }
+
+      ha-icon {
+        width: 40%;
+        height: auto;
+        color: var(--paper-item-icon-color, #44739e);
+      }
+
+      ha-icon[data-domain="light"][data-state="on"],
+      ha-icon[data-domain="switch"][data-state="on"],
+      ha-icon[data-domain="binary_sensor"][data-state="on"],
+      ha-icon[data-domain="fan"][data-state="on"],
+      ha-icon[data-domain="sun"][data-state="above_horizon"] {
+        color: var(--paper-item-icon-active-color, #fdd835);
+      }
+
+      ha-icon[data-state="unavailable"] {
+        color: var(--state-icon-unavailable-color);
+      }
     `;
   }
 
@@ -180,41 +205,19 @@ class HuiEntityButtonCard extends hassLocalizeLitMixin(LitElement)
     if (!stateObj.attributes.hs_color) {
       return "";
     }
-    const { hue, sat } = stateObj.attributes.hs_color;
+    const [hue, sat] = stateObj.attributes.hs_color;
     if (sat <= 10) {
       return "";
     }
     return `hsl(${hue}, 100%, ${100 - sat / 2}%)`;
   }
 
-  private handleClick(hold: boolean): void {
-    const config = this._config;
-    if (!config) {
-      return;
-    }
-    const stateObj = this.hass!.states[config.entity];
-    if (!stateObj) {
-      return;
-    }
-    const entityId = stateObj.entity_id;
-    const action = hold ? config.hold_action : config.tap_action || "more-info";
-    switch (action) {
-      case "toggle":
-        toggleEntity(this.hass!, entityId);
-        break;
-      case "call-service":
-        if (!config.service) {
-          return;
-        }
-        const [domain, service] = config.service.split(".", 2);
-        const serviceData = { entity_id: entityId, ...config.service_data };
-        this.hass!.callService(domain, service, serviceData);
-        break;
-      case "more-info":
-        fireEvent(this, "hass-more-info", { entityId });
-        break;
-      default:
-    }
+  private _handleTap() {
+    handleClick(this, this.hass!, this._config!, false);
+  }
+
+  private _handleHold() {
+    handleClick(this, this.hass!, this._config!, true);
   }
 }
 
@@ -223,5 +226,3 @@ declare global {
     "hui-entity-button-card": HuiEntityButtonCard;
   }
 }
-
-customElements.define("hui-entity-button-card", HuiEntityButtonCard);

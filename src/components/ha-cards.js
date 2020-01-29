@@ -36,12 +36,13 @@ const PRIORITY = {
   // badges have priority >= 0
   updater: 0,
   sun: 1,
-  device_tracker: 2,
-  alarm_control_panel: 3,
-  timer: 4,
-  sensor: 5,
-  binary_sensor: 6,
-  mailbox: 7,
+  person: 2,
+  device_tracker: 3,
+  alarm_control_panel: 4,
+  timer: 5,
+  sensor: 6,
+  binary_sensor: 7,
+  mailbox: 8,
 };
 
 const getPriority = (domain) => (domain in PRIORITY ? PRIORITY[domain] : 100);
@@ -123,7 +124,7 @@ class HaCards extends PolymerElement {
       </style>
 
       <div id="main">
-        <template is="dom-if" if="[[cards.badges]]">
+        <template is="dom-if" if="[[cards.badges.length]]">
           <div class="badges">
             <template is="dom-if" if="[[cards.demo]]">
               <ha-demo-badge></ha-demo-badge>
@@ -159,7 +160,6 @@ class HaCards extends PolymerElement {
       },
 
       states: Object,
-      panelVisible: Boolean,
 
       viewVisible: {
         type: Boolean,
@@ -173,19 +173,11 @@ class HaCards extends PolymerElement {
   }
 
   static get observers() {
-    return [
-      "updateCards(columns, states, panelVisible, viewVisible, orderedGroupEntities)",
-    ];
+    return ["updateCards(columns, states, viewVisible, orderedGroupEntities)"];
   }
 
-  updateCards(
-    columns,
-    states,
-    panelVisible,
-    viewVisible,
-    orderedGroupEntities
-  ) {
-    if (!panelVisible || !viewVisible) {
+  updateCards(columns, states, viewVisible, orderedGroupEntities) {
+    if (!viewVisible) {
       if (this.$.main.parentNode) {
         this.$.main._parentNode = this.$.main.parentNode;
         this.$.main.parentNode.removeChild(this.$.main);
@@ -200,7 +192,7 @@ class HaCards extends PolymerElement {
       timeOut.after(10),
       () => {
         // Things might have changed since it got scheduled.
-        if (this.panelVisible && this.viewVisible) {
+        if (this.viewVisible) {
           this.cards = this.computeCards(columns, states, orderedGroupEntities);
         }
       }

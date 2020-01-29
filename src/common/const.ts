@@ -7,6 +7,9 @@
 /** Icon to use when no icon specified for domain. */
 export const DEFAULT_DOMAIN_ICON = "hass:bookmark";
 
+/** Panel to show when no panel is picked. */
+export const DEFAULT_PANEL = "lovelace";
+
 /** Domains that have a state card. */
 export const DOMAINS_WITH_CARD = [
   "climate",
@@ -42,6 +45,7 @@ export const DOMAINS_WITH_MORE_INFO = [
   "media_player",
   "script",
   "sun",
+  "timer",
   "updater",
   "vacuum",
   "water_heater",
@@ -74,6 +78,8 @@ export const DOMAINS_TOGGLE = new Set([
   "input_boolean",
   "light",
   "switch",
+  "group",
+  "automation",
 ]);
 
 /** Temperature units. */

@@ -1,3 +1,7 @@
+/*
+  This file is not run through webpack, but instead is directly manipulated
+  by Workbox Webpack plugin. So we cannot use __DEV__ or other constants.
+*/
 /* global workbox clients */
 
 function initRouting() {
@@ -6,21 +10,21 @@ function initRouting() {
   // Cache static content (including translations) on first access.
   workbox.routing.registerRoute(
     new RegExp(`${location.host}/(static|frontend_latest|frontend_es5)/.+`),
-    workbox.strategies.cacheFirst()
+    new workbox.strategies.CacheFirst()
   );
 
   // Get api from network.
   workbox.routing.registerRoute(
-    new RegExp(`${location.host}/api/.*`),
-    workbox.strategies.networkOnly()
+    new RegExp(`${location.host}/(api|auth)/.*`),
+    new workbox.strategies.NetworkOnly()
   );
 
-  // Get manifest and service worker from network.
+  // Get manifest, service worker, onboarding from network.
   workbox.routing.registerRoute(
     new RegExp(
-      `${location.host}/(service_worker.js|service_worker_es5.js|manifest.json)`
+      `${location.host}/(service_worker.js|manifest.json|onboarding.html)`
     ),
-    workbox.strategies.networkOnly()
+    new workbox.strategies.NetworkOnly()
   );
 
   // For rest of the files (on Home Assistant domain only) try both cache and network.
@@ -29,7 +33,7 @@ function initRouting() {
   // file.
   workbox.routing.registerRoute(
     new RegExp(`${location.host}/.*`),
-    workbox.strategies.staleWhileRevalidate()
+    new workbox.strategies.StaleWhileRevalidate()
   );
 }
 
@@ -72,6 +76,14 @@ function initPushNotifications() {
     var data;
     if (event.data) {
       data = event.data.json();
+      if (data.dismiss) {
+        event.waitUntil(
+          self.registration
+            .getNotifications({ tag: data.tag })
+            .then((notifications) => notifications.forEach((n) => n.close()))
+        );
+        return;
+      }
       event.waitUntil(
         self.registration
           .showNotification(data.title, data)
@@ -96,7 +108,11 @@ function initPushNotifications() {
 
     event.notification.close();
 
-    if (!event.notification.data || !event.notification.data.url) {
+    if (
+      event.action ||
+      !event.notification.data ||
+      !event.notification.data.url
+    ) {
       return;
     }
 
@@ -131,6 +147,12 @@ function initPushNotifications() {
   });
 }
 
+self.addEventListener("install", (event) => {
+  // Delete all runtime caching, so that index.html has to be refetched.
+  const cacheName = workbox.core.cacheNames.runtime;
+  event.waitUntil(caches.delete(cacheName));
+});
+
 self.addEventListener("message", (message) => {
   if (message.data.type === "skipWaiting") {
     self.skipWaiting();
@@ -139,11 +161,8 @@ self.addEventListener("message", (message) => {
 });
 
 workbox.setConfig({
-  debug: __DEV__,
+  debug: false,
 });
 
-if (!__DEV__) {
-  initRouting();
-}
-
+initRouting();
 initPushNotifications();

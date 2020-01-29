@@ -1,64 +1,31 @@
-import { html, LitElement, PropertyDeclarations } from "@polymer/lit-element";
-import { TemplateResult } from "lit-html";
-
-import "@polymer/paper-spinner/paper-spinner";
-import "@polymer/paper-dialog/paper-dialog";
-// This is not a duplicate import, one is for types, one is for element.
-// tslint:disable-next-line
-import { PaperDialogElement } from "@polymer/paper-dialog/paper-dialog";
-import "@polymer/paper-button/paper-button";
-
-import { HomeAssistant } from "../../../types";
-
 import {
-  saveConfig,
-  migrateConfig,
-  LovelaceConfig,
-} from "../../../data/lovelace";
-import { fireEvent } from "../../../common/dom/fire_event";
-import { hassLocalizeLitMixin } from "../../../mixins/lit-localize-mixin";
+  html,
+  css,
+  LitElement,
+  TemplateResult,
+  CSSResult,
+  customElement,
+  property,
+} from "lit-element";
+import "@polymer/paper-spinner/paper-spinner";
+import "../../../components/dialog/ha-paper-dialog";
+// tslint:disable-next-line:no-duplicate-imports
+import { HaPaperDialog } from "../../../components/dialog/ha-paper-dialog";
+import "@material/mwc-button";
 
-declare global {
-  // for fire event
-  interface HASSDomEvents {
-    "show-save-config": SaveDialogParams;
-  }
-}
+import { haStyleDialog } from "../../../resources/styles";
+import { HomeAssistant } from "../../../types";
+import { SaveDialogParams } from "./show-save-config-dialog";
 
-const dialogShowEvent = "show-save-config";
-const dialogTag = "hui-dialog-save-config";
+@customElement("hui-dialog-save-config")
+export class HuiSaveConfig extends LitElement {
+  @property() public hass?: HomeAssistant;
 
-export interface SaveDialogParams {
-  config: LovelaceConfig;
-  reloadLovelace: () => void;
-}
+  @property() private _params?: SaveDialogParams;
 
-export const registerSaveDialog = (element: HTMLElement) =>
-  fireEvent(element, "register-dialog", {
-    dialogShowEvent,
-    dialogTag,
-    dialogImport: () => import("./hui-dialog-save-config"),
-  });
+  @property() private _saving: boolean;
 
-export const showSaveDialog = (
-  element: HTMLElement,
-  saveDialogParams: SaveDialogParams
-) => fireEvent(element, dialogShowEvent, saveDialogParams);
-
-export class HuiSaveConfig extends hassLocalizeLitMixin(LitElement) {
-  protected hass?: HomeAssistant;
-  private _params?: SaveDialogParams;
-  private _saving: boolean;
-
-  static get properties(): PropertyDeclarations {
-    return {
-      hass: {},
-      _params: {},
-      _saving: {},
-    };
-  }
-
-  protected constructor() {
+  public constructor() {
     super();
     this._saving = false;
   }
@@ -69,62 +36,43 @@ export class HuiSaveConfig extends hassLocalizeLitMixin(LitElement) {
     this._dialog.open();
   }
 
-  private get _dialog(): PaperDialogElement {
-    return this.shadowRoot!.querySelector("paper-dialog")!;
+  private get _dialog(): HaPaperDialog {
+    return this.shadowRoot!.querySelector("ha-paper-dialog")!;
   }
 
-  protected render(): TemplateResult {
+  protected render(): TemplateResult | void {
     return html`
-      ${this.renderStyle()}
-      <paper-dialog with-backdrop>
-        <h2>${this.localize("ui.panel.lovelace.editor.save_config.header")}</h2>
+      <ha-paper-dialog with-backdrop>
+        <h2>
+          ${this.hass!.localize("ui.panel.lovelace.editor.save_config.header")}
+        </h2>
         <paper-dialog-scrollable>
-          <p>${this.localize("ui.panel.lovelace.editor.save_config.para")}</p>
           <p>
-            ${this.localize("ui.panel.lovelace.editor.save_config.para_sure")}
+            ${this.hass!.localize("ui.panel.lovelace.editor.save_config.para")}
+          </p>
+          <p>
+            ${this.hass!.localize(
+              "ui.panel.lovelace.editor.save_config.para_sure"
+            )}
           </p>
         </paper-dialog-scrollable>
         <div class="paper-dialog-buttons">
-          <paper-button @click="${this._closeDialog}"
-            >${
-              this.localize("ui.panel.lovelace.editor.save_config.cancel")
-            }</paper-button
+          <mwc-button @click="${this._closeDialog}"
+            >${this.hass!.localize(
+              "ui.panel.lovelace.editor.save_config.cancel"
+            )}</mwc-button
           >
-          <paper-button
-            ?disabled="${this._saving}"
-            @click="${this._saveConfig}"
-          >
+          <mwc-button ?disabled="${this._saving}" @click="${this._saveConfig}">
             <paper-spinner
               ?active="${this._saving}"
               alt="Saving"
             ></paper-spinner>
-            ${
-              this.localize("ui.panel.lovelace.editor.save_config.save")
-            }</paper-button
+            ${this.hass!.localize(
+              "ui.panel.lovelace.editor.save_config.save"
+            )}</mwc-button
           >
         </div>
-      </paper-dialog>
-    `;
-  }
-
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        paper-dialog {
-          width: 650px;
-        }
-        paper-spinner {
-          display: none;
-        }
-        paper-spinner[active] {
-          display: block;
-        }
-        paper-button paper-spinner {
-          width: 14px;
-          height: 14px;
-          margin-right: 20px;
-        }
-      </style>
+      </ha-paper-dialog>
     `;
   }
 
@@ -137,17 +85,50 @@ export class HuiSaveConfig extends hassLocalizeLitMixin(LitElement) {
       return;
     }
     this._saving = true;
-    delete this._params.config._frontendAuto;
     try {
-      await saveConfig(this.hass, this._params.config, "json");
-      await migrateConfig(this.hass);
+      const lovelace = this._params!.lovelace;
+      await lovelace.saveConfig(lovelace.config);
+      lovelace.setEditMode(true);
       this._saving = false;
       this._closeDialog();
-      this._params.reloadLovelace!();
     } catch (err) {
       alert(`Saving failed: ${err.message}`);
       this._saving = false;
     }
+  }
+
+  static get styles(): CSSResult[] {
+    return [
+      haStyleDialog,
+      css`
+        @media all and (max-width: 450px), all and (max-height: 500px) {
+          /* overrule the ha-style-dialog max-height on small screens */
+          ha-paper-dialog {
+            max-height: 100%;
+            height: 100%;
+          }
+        }
+        @media all and (min-width: 660px) {
+          ha-paper-dialog {
+            width: 650px;
+          }
+        }
+        ha-paper-dialog {
+          max-width: 650px;
+        }
+        paper-spinner {
+          display: none;
+        }
+        paper-spinner[active] {
+          display: block;
+        }
+        mwc-button paper-spinner {
+          width: 14px;
+          height: 14px;
+          margin-right: 20px;
+        }
+      `,
+    ];
   }
 }
 
@@ -156,5 +137,3 @@ declare global {
     "hui-dialog-save-config": HuiSaveConfig;
   }
 }
-
-customElements.define(dialogTag, HuiSaveConfig);

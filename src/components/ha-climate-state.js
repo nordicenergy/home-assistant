@@ -2,6 +2,7 @@ import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
 import LocalizeMixin from "../mixins/localize-mixin";
+import { CLIMATE_PRESET_NONE } from "../data/climate";
 
 /*
  * @appliesMixin LocalizeMixin
@@ -29,18 +30,29 @@ class HaClimateState extends LocalizeMixin(PolymerElement) {
           font-weight: bold;
           text-transform: capitalize;
         }
+
+        .unit {
+          display: inline-block;
+          direction: ltr;
+        }
       </style>
 
       <div class="target">
         <template is="dom-if" if="[[_hasKnownState(stateObj.state)]]">
-          <span class="state-label"> [[_localizeState(stateObj.state)]] </span>
+          <span class="state-label">
+            [[_localizeState(localize, stateObj)]]
+            <template is="dom-if" if="[[_renderPreset(stateObj.attributes)]]">
+              - [[_localizePreset(localize, stateObj.attributes.preset_mode)]]
+            </template>
+          </span>
         </template>
-        [[computeTarget(hass, stateObj)]]
+        <div class="unit">[[computeTarget(hass, stateObj)]]</div>
       </div>
 
       <template is="dom-if" if="[[currentStatus]]">
         <div class="current">
-          [[localize('ui.card.climate.currently')]]: [[currentStatus]]
+          [[localize('ui.card.climate.currently')]]:
+          <div class="unit">[[currentStatus]]</div>
         </div>
       </template>
     `;
@@ -77,7 +89,7 @@ class HaClimateState extends LocalizeMixin(PolymerElement) {
       stateObj.attributes.target_temp_low != null &&
       stateObj.attributes.target_temp_high != null
     ) {
-      return `${stateObj.attributes.target_temp_low} - ${
+      return `${stateObj.attributes.target_temp_low}-${
         stateObj.attributes.target_temp_high
       } ${hass.config.unit_system.temperature}`;
     }
@@ -90,9 +102,9 @@ class HaClimateState extends LocalizeMixin(PolymerElement) {
       stateObj.attributes.target_humidity_low != null &&
       stateObj.attributes.target_humidity_high != null
     ) {
-      return `${stateObj.attributes.target_humidity_low} - ${
+      return `${stateObj.attributes.target_humidity_low}-${
         stateObj.attributes.target_humidity_high
-      } %`;
+      }%`;
     }
     if (stateObj.attributes.humidity != null) {
       return `${stateObj.attributes.humidity} %`;
@@ -105,8 +117,25 @@ class HaClimateState extends LocalizeMixin(PolymerElement) {
     return state !== "unknown";
   }
 
-  _localizeState(state) {
-    return this.localize(`state.climate.${state}`) || state;
+  _localizeState(localize, stateObj) {
+    const stateString = localize(`state.climate.${stateObj.state}`);
+    return stateObj.attributes.hvac_action
+      ? `${localize(
+          `state_attributes.climate.hvac_action.${
+            stateObj.attributes.hvac_action
+          }`
+        )} (${stateString})`
+      : stateString;
+  }
+
+  _localizePreset(localize, preset) {
+    return localize(`state_attributes.climate.preset_mode.${preset}`) || preset;
+  }
+
+  _renderPreset(attributes) {
+    return (
+      attributes.preset_mode && attributes.preset_mode !== CLIMATE_PRESET_NONE
+    );
   }
 }
 customElements.define("ha-climate-state", HaClimateState);

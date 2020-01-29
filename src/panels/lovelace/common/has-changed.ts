@@ -1,5 +1,5 @@
 import { HomeAssistant } from "../../../types";
-import { PropertyValues } from "@polymer/lit-element";
+import { PropertyValues } from "lit-element";
 
 // Check if config or Entity changed
 export function hasConfigOrEntityChanged(
@@ -11,12 +11,13 @@ export function hasConfigOrEntityChanged(
   }
 
   const oldHass = changedProps.get("hass") as HomeAssistant | undefined;
-  if (oldHass) {
-    return (
-      oldHass.states[element._config!.entity] !==
-      element.hass!.states[element._config!.entity]
-    );
+  if (!oldHass) {
+    return true;
   }
 
-  return true;
+  return (
+    oldHass.states[element._config!.entity] !==
+      element.hass!.states[element._config!.entity] ||
+    oldHass.localize !== element.hass.localize
+  );
 }

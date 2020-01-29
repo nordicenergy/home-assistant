@@ -1,36 +1,46 @@
-import { html, LitElement, PropertyDeclarations } from "@polymer/lit-element";
+import {
+  html,
+  LitElement,
+  TemplateResult,
+  customElement,
+  property,
+  css,
+  CSSResult,
+} from "lit-element";
 
 import "../../../components/ha-card";
 
-import { LovelaceCard } from "../types";
-import { LovelaceCardConfig } from "../../../data/lovelace";
-import { navigate } from "../../../common/navigate";
+import { LovelaceCard, LovelaceCardEditor } from "../types";
 import { HomeAssistant } from "../../../types";
-import { TemplateResult } from "lit-html";
-import { classMap } from "lit-html/directives/classMap";
+import { classMap } from "lit-html/directives/class-map";
+import { handleClick } from "../common/handle-click";
+import { longPress } from "../common/directives/long-press-directive";
+import { PictureCardConfig } from "./types";
 
-interface Config extends LovelaceCardConfig {
-  image?: string;
-  navigation_path?: string;
-  service?: string;
-  service_data?: object;
-}
-
+@customElement("hui-picture-card")
 export class HuiPictureCard extends LitElement implements LovelaceCard {
-  public hass?: HomeAssistant;
-  protected _config?: Config;
-
-  static get properties(): PropertyDeclarations {
+  public static async getConfigElement(): Promise<LovelaceCardEditor> {
+    await import(/* webpackChunkName: "hui-picture-card-editor" */ "../editor/config-elements/hui-picture-card-editor");
+    return document.createElement("hui-picture-card-editor");
+  }
+  public static getStubConfig(): object {
     return {
-      _config: {},
+      image:
+        "https://www.home-assistant.io/images/merchandise/shirt-frontpage.png",
+      tap_action: { action: "none" },
+      hold_action: { action: "none" },
     };
   }
+
+  public hass?: HomeAssistant;
+
+  @property() protected _config?: PictureCardConfig;
 
   public getCardSize(): number {
     return 3;
   }
 
-  public setConfig(config: Config): void {
+  public setConfig(config: PictureCardConfig): void {
     if (!config || !config.image) {
       throw new Error("Invalid Configuration: 'image' required");
     }
@@ -38,53 +48,50 @@ export class HuiPictureCard extends LitElement implements LovelaceCard {
     this._config = config;
   }
 
-  protected render(): TemplateResult {
+  protected render(): TemplateResult | void {
     if (!this._config || !this.hass) {
       return html``;
     }
 
     return html`
-      ${this.renderStyle()}
       <ha-card
-        @click="${this.handleClick}"
-        class="${
-          classMap({
-            clickable: Boolean(
-              this._config.navigation_path || this._config.service
-            ),
-          })
-        }"
+        @ha-click="${this._handleTap}"
+        @ha-hold="${this._handleHold}"
+        .longPress="${longPress()}"
+        class="${classMap({
+          clickable: Boolean(
+            this._config.tap_action || this._config.hold_action
+          ),
+        })}"
       >
-        <img src="${this._config.image}" />
+        <img src="${this.hass.hassUrl(this._config.image)}" />
       </ha-card>
     `;
   }
 
-  private renderStyle(): TemplateResult {
-    return html`
-      <style>
-        ha-card {
-          overflow: hidden;
-        }
-        ha-card.clickable {
-          cursor: pointer;
-        }
-        img {
-          display: block;
-          width: 100%;
-        }
-      </style>
+  static get styles(): CSSResult {
+    return css`
+      ha-card {
+        overflow: hidden;
+      }
+
+      ha-card.clickable {
+        cursor: pointer;
+      }
+
+      img {
+        display: block;
+        width: 100%;
+      }
     `;
   }
 
-  private handleClick(): void {
-    if (this._config!.navigation_path) {
-      navigate(this, this._config!.navigation_path!);
-    }
-    if (this._config!.service) {
-      const [domain, service] = this._config!.service!.split(".", 2);
-      this.hass!.callService(domain, service, this._config!.service_data);
-    }
+  private _handleTap() {
+    handleClick(this, this.hass!, this._config!, false);
+  }
+
+  private _handleHold() {
+    handleClick(this, this.hass!, this._config!, true);
   }
 }
 
@@ -93,5 +100,3 @@ declare global {
     "hui-picture-card": HuiPictureCard;
   }
 }
-
-customElements.define("hui-picture-card", HuiPictureCard);

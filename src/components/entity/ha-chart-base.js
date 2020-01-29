@@ -60,6 +60,9 @@ class HaChartBase extends mixinBehaviors(
           width: 200px;
           transition: opacity 0.15s ease-in-out;
         }
+        :host([rtl]) .chartTooltip {
+          direction: rtl;
+        }
         .chartLegend ul,
         .chartTooltip ul {
           display: inline-block;
@@ -98,6 +101,10 @@ class HaChartBase extends mixinBehaviors(
           height: 10px;
           margin-right: 4px;
           width: 10px;
+        }
+        :host([rtl]) .chartTooltip em {
+          margin-right: inherit;
+          margin-left: 4px;
         }
         paper-icon-button {
           color: var(--secondary-text-color);
@@ -169,6 +176,10 @@ class HaChartBase extends mixinBehaviors(
         }),
       },
       unit: Object,
+      rtl: {
+        type: Boolean,
+        reflectToAttribute: true,
+      },
     };
   }
 
@@ -276,11 +287,12 @@ class HaChartBase extends mixinBehaviors(
     }
     positionX += this._chart.canvas.offsetLeft;
     // Display, position, and set styles for font
-    this.tooltip = Object.assign({}, this.tooltip, {
+    this.tooltip = {
+      ...this.tooltip,
       opacity: 1,
       left: `${positionX}px`,
       top: `${positionY}px`,
-    });
+    };
   }
 
   _legendClick(event) {

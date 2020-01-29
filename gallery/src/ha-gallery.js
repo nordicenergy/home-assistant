@@ -2,7 +2,6 @@ import "@polymer/app-layout/app-header-layout/app-header-layout";
 import "@polymer/app-layout/app-header/app-header";
 import "@polymer/app-layout/app-toolbar/app-toolbar";
 import "@polymer/iron-icon/iron-icon";
-import "@polymer/paper-card/paper-card";
 import "@polymer/paper-item/paper-item";
 import "@polymer/paper-item/paper-item-body";
 import "@polymer/paper-icon-button/paper-icon-button";
@@ -10,8 +9,9 @@ import { html } from "@polymer/polymer/lib/utils/html-tag";
 import { PolymerElement } from "@polymer/polymer/polymer-element";
 
 import "../../src/managers/notification-manager";
+import "../../src/components/ha-card";
 
-const DEMOS = require.context("./demos", true, /^(.*\.(js$))[^.]*$/im);
+const DEMOS = require.context("./demos", true, /^(.*\.(ts$))[^.]*$/im);
 
 const fixPath = (path) => path.substr(2, path.length - 5);
 
@@ -38,13 +38,13 @@ class HaGallery extends PolymerElement {
         align-items: start;
       }
 
-      .pickers paper-card {
+      .pickers ha-card {
         width: 400px;
         display: block;
         margin: 16px 8px;
       }
 
-      .pickers paper-card:last-child {
+      .pickers ha-card:last-child {
         margin-bottom: 16px;
       }
 
@@ -56,7 +56,7 @@ class HaGallery extends PolymerElement {
         color: var(--primary-color);
       }
 
-      a paper-item {
+      a {
         color: var(--primary-text-color);
         text-decoration: none;
       }
@@ -79,7 +79,7 @@ class HaGallery extends PolymerElement {
           <div id='demo'></div>
           <template is='dom-if' if='[[!_demo]]'>
             <div class='pickers'>
-              <paper-card heading="Lovelace card demos">
+              <ha-card header="Lovelace card demos">
                 <div class='card-content intro'>
                   <p>
                     Lovelace has many different cards. Each card allows the user to tell a different story about what is going on in their house. These cards are very customizable, as no household is the same.
@@ -101,9 +101,9 @@ class HaGallery extends PolymerElement {
                     </paper-item>
                   </a>
                 </template>
-              </paper-card>
+              </ha-card>
 
-              <paper-card heading="More Info demos">
+              <ha-card header="More Info demos">
                 <div class='card-content intro'>
                   <p>
                     More info screens show up when an entity is clicked.
@@ -117,17 +117,43 @@ class HaGallery extends PolymerElement {
                     </paper-item>
                   </a>
                 </template>
-              </paper-card>
+              </ha-card>
+
+              <ha-card header="Util demos">
+                <div class='card-content intro'>
+                  <p>
+                    Test pages for our utility functions.
+                  </p>
+                </div>
+                <template is='dom-repeat' items='[[_utilDemos]]'>
+                  <a href='#[[item]]'>
+                    <paper-item>
+                      <paper-item-body>{{ item }}</paper-item-body>
+                      <iron-icon icon="hass:chevron-right"></iron-icon>
+                    </paper-item>
+                  </a>
+                </template>
+              </ha-card>
             </div>
           </template>
         </div>
       </app-header-layout>
-      <notification-manager id='notifications'></notification-manager>
+      <notification-manager hass=[[_fakeHass]] id='notifications'></notification-manager>
     `;
   }
 
   static get properties() {
     return {
+      _fakeHass: {
+        type: Object,
+        // Just enough for computeRTL
+        value: {
+          language: "en",
+          translationMetadata: {
+            translations: {},
+          },
+        },
+      },
       _demo: {
         type: String,
         value: document.location.hash.substr(1),
@@ -144,6 +170,10 @@ class HaGallery extends PolymerElement {
       _moreInfoDemos: {
         type: Array,
         computed: "_computeMoreInfos(_demos)",
+      },
+      _utilDemos: {
+        type: Array,
+        computed: "_computeUtil(_demos)",
       },
     };
   }
@@ -178,7 +208,7 @@ class HaGallery extends PolymerElement {
     while (root.lastChild) root.removeChild(root.lastChild);
 
     if (demo) {
-      DEMOS(`./${demo}.js`);
+      DEMOS(`./${demo}.ts`);
       const el = document.createElement(demo);
       root.appendChild(el);
     }
@@ -198,6 +228,10 @@ class HaGallery extends PolymerElement {
 
   _computeMoreInfos(demos) {
     return demos.filter((demo) => demo.includes("more-info"));
+  }
+
+  _computeUtil(demos) {
+    return demos.filter((demo) => demo.includes("util"));
   }
 }
 
